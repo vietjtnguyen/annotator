@@ -19,45 +19,89 @@
 
 var pointId = 0;
 
-var Image = Backbone.Model.extend({
-  localStorage: new Backbone.LocalStorage("com.vietjtnguyen.annotator.image"),
-  defaults: function() {
+var Application = Backbone.Model.extend({
+  "localStorage": new Backbone.LocalStorage("com.vietjtnguyen.annotator.application"),
+  "defaults": function() {
     return {
-      name: "",
-      width: 0,
-      height: 0,
-      url: ""
+      "activeImage": "2008_000003",
+      "zoom": {
+        "translate": [0, 0],
+        "scale": 1
+      }
     };
   },
-  initialize: function() {
+  "initialize": function() {
+  }
+});
+var application = new Application();
+
+var UtilityView = Backbone.View.extend({
+  "events": {
+    "click #resetViewButton": "resetView",
+    "click #toggleBgButton": "toggleBg"
   },
-  validate: function(attrs, options) {
+  "initialize": function() {
+    this.listenTo(application, "change", this.render);
+    this.resetView();
+  },
+  "render": function() {
+  },
+  "resetView": function() {
+    resetView();
+  },
+  "toggleBg": function() {
+    var body = d3.select("body");
+    if (body.style("background-color").indexOf("rgb(0, 0, 0)") > -1 ||
+        body.style("background-color").indexOf("#000") > -1 ) {
+      body.style("background-color", "rgb(255, 255, 255)");
+      grid.style("stroke", "#eee");
+    } else {
+      body.style("background-color", "rgb(0, 0, 0)");
+      grid.style("stroke", "#222");
+    }
+  }
+});
+var utilityView = new UtilityView({"el": $("#utilityView")});
+
+var Image = Backbone.Model.extend({
+  "localStorage": new Backbone.LocalStorage("com.vietjtnguyen.annotator.image"),
+  "defaults": function() {
+    return {
+      "name": "",
+      "width": 0,
+      "height": 0,
+      "url": ""
+    };
+  },
+  "initialize": function() {
+  },
+  "validate": function(attrs, options) {
   }
 });
 
 var ImageCollection = Backbone.Collection.extend({
-  localStorage: new Backbone.LocalStorage("com.vietjtnguyen.annotator.images"),
-  model: Image,
-  initialize: function() {
+  "localStorage": new Backbone.LocalStorage("com.vietjtnguyen.annotator.images"),
+  "model": Image,
+  "initialize": function() {
   },
 });
 
 var PolyLine = Backbone.Model.extend({
-  localStorage: new Backbone.LocalStorage("com.vietjtnguyen.annotator.polyline"),
-  initialize: function() {
+  "localStorage": new Backbone.LocalStorage("com.vietjtnguyen.annotator.polyline"),
+  "initialize": function() {
     this.set("points", []);
   },
-  toSvgCoord: function() {
+  "toSvgCoord": function() {
     return _.map(this.get("points"), function(i) { return i.x + "," + i.y; }).join(" ");
   }
 });
 
 var imageData = new Image({
-  name: "2008_000003",
-  width: 500,
-  height: 333,
-  url: "../example-data/images/2008_000003.jpg",
-  comment: ""
+  "name": "2008_000003",
+  "width": 500,
+  "height": 333,
+  "url": "../example-data/images/2008_000003.jpg",
+  "comment": ""
 });
 
 var polyLine = new PolyLine({"id": imageData.get("name")});
@@ -119,7 +163,7 @@ var origin = svgRoot.append("g");
 var gridSpacing = 10,
     gridExtent = [-1000, -1000, 2000, 2000];
 origin.append("g")
-    .attr("class", "x axis")
+    .attr("class", "axis")
   .selectAll("line")
     .data(d3.range(gridExtent[0], gridExtent[2] + gridSpacing, gridSpacing))
   .enter().append("line")
@@ -128,7 +172,7 @@ origin.append("g")
     .attr("x2", function(d) { return d; })
     .attr("y2", gridExtent[2]);
 origin.append("g")
-    .attr("class", "y axis")
+    .attr("class", "axis")
   .selectAll("line")
     .data(d3.range(gridExtent[1], gridExtent[3] + gridSpacing, gridSpacing))
   .enter().append("line")
@@ -136,6 +180,13 @@ origin.append("g")
     .attr("y1", function(d) { return d; })
     .attr("x2", gridExtent[2])
     .attr("y2", function(d) { return d; });
+var grid = d3.selectAll("g .axis line")
+  .style({
+    "fill": "none",
+    "stroke": "#eee",
+    "shape-rendering": "crispEdges",
+    "vector-effect": "non-scaling-stroke"
+  });
 
 /*
  * This is really annoying. I think I need to know the size of the image before
@@ -162,8 +213,8 @@ var clickRect = origin.append("rect")
   .on("click", canvasClick);
 
 var line = origin.selectAll("polyline")
-  .data([{"width": 5, "color": "#fff", "opacity": 0.5},
-         {"width": 1, "color": "#000", "opacity": 1}])
+  .data([{"width": 3, "color": "#fff", "opacity": 0.5, "linecap": "round"},
+         {"width": 1, "color": "#000", "opacity": 1, "linecap": "butt"}])
   .enter()
   .append("polyline")
   .attr("fill", "none")
@@ -171,6 +222,8 @@ var line = origin.selectAll("polyline")
   .attr("vector-effect", "non-scaling-stroke")
   .attr("stroke", function(d) { return d.color; })
   .attr("stroke-width", function(d) { return d.width; })
+  .attr("stroke-linecap", function(d) { return d.linecap; })
+  .attr("stroke-linejoin", "round")
   .style("opacity", function(d) { return d.opacity; });
 var dot = origin.append("g").attr("class", "dot");
 updateDots();
@@ -194,22 +247,26 @@ function updateDots() {
     .attr("cy", function(d) { return d.y; })
     .style({"opacity": 0,
             "stroke-width": "1.5px",
-            "stroke": "rgba(0, 0, 0, 1)",
-            "fill": "rgba(255, 255, 255, 0.8)"})
+            "stroke": "#000",
+            "stroke-opacity": 0.1,
+            "fill": "#fff",
+            "fill-opacity": 0.1})
     .on("click", dotClick)
     .on("mouseover", function(d, i) {
       d3.select(this).transition().duration(250)
         .attr("r", 10)
         .style("opacity", 1)
-        .style("fill", "rgba(255, 255, 255, 0.2)")
-        .style("stroke", "rgba(255, 0, 0, 1)");
+        .style("fill-opacity", 0)
+        .style("stroke", "#f00")
+        .style("stroke-opacity", 1);
     })
     .on("mouseout", function(d, i) {
       d3.select(this).transition().duration(250)
         .attr("r", 5)
         .style("opacity", 1)
-        .style("fill", "rgba(255, 255, 255, 0.8)")
-        .style("stroke", "rgba(0, 0, 0, 0.5)");
+        .style("fill-opacity", 0.1)
+        .style("stroke", "#000")
+        .style("stroke-opacity", 0.1);
     })
     .call(drag)
     .transition()
@@ -268,7 +325,6 @@ function dotClick(d, i) {
 
 function canvasClick(d, i) {
   /* <http://stackoverflow.com/questions/19075381/d3-mouse-events-click-dragend> */
-  console.log(d3.event);
   if (d3.event.defaultPrevented) return;
   if (!d3.event.ctrlKey) {
     /* <http://stackoverflow.com/questions/10247209/d3-click-coordinates-are-relative-to-page-not-svg-how-to-translate-them-chrom> */
@@ -328,22 +384,19 @@ function resetView(d, i) {
   });
 }
 
-d3.select("#resetButton").on("click", resetView);
-resetView();
-
-d3.select("#saveButton").on("click", function(d, i) {
+d3.select("#saveImageButton").on("click", function(d, i) {
   polyLine.save();
 });
 
-d3.select("#openButton").on("click", function(d, i) {
+d3.select("#openImageButton").on("click", function(d, i) {
   polyLine.fetch({
-    success: function(model, response, options) {
+    "success": function(model, response, options) {
       console.log("fetch success");
       console.log(model);
       console.log(response);
       pointId = _.max(polyLine.get("points"), function(i) { return i.id; });
     },
-    error: function(model, response, options) {
+    "error": function(model, response, options) {
       console.log("fetch fail");
     }
   });

@@ -8,16 +8,6 @@ svg {
   font: 10px sans-serif;
 }
 
-rect {
-  fill: #ddd;
-}
-
-.axis path,
-.axis line {
-  fill: none;
-  stroke: #fff;
-}
-
 .dot circle {
   fill: lightsteelblue;
   stroke: steelblue;
@@ -27,11 +17,4 @@ rect {
 .dot circle.dragging {
   fill: red;
   stroke: brown;
-}
-
-.axis line {
-  fill: none;
-  stroke: #ddd;
-  shape-rendering: crispEdges;
-  vector-effect: non-scaling-stroke;
 }

@@ -6,36 +6,45 @@
   <link rel="stylesheet" type="text/css" href="css/external/bootstrap.css">
   <link rel="stylesheet" type="text/css" href="css/annotator.css"/>
 </head>
-<body>
-  <div style="position: fixed; margin-left: 0px; margin-top: 0px; padding: 10px; background: rgba(255, 255, 255, 0.5); overflow-y: scroll; height: 100%;">
-    <p>
-      <button id="saveButton" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-save"></span> Save</button>
-      <button id="openButton" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-open"></span> Open</button>
+<body style="overflow: hidden; background: #fff">
+  <!--
+  <http://stackoverflow.com/questions/9735513/how-to-place-a-div-on-the-right-side-with-absolute-position>
+  <http://stackoverflow.com/questions/2469529/how-to-disable-scrolling-the-document-body>
+  <http://css3gen.com/box-shadow/>
+  -->
+  <div style="position: fixed; right: 0px; top: 0px; padding: 10px; background: rgba(255, 255, 255, 0.9); overflow-y: scroll; width: 200px; height: 100%; box-shadow: -5px 0px 8px 0px rgba(0, 0, 0, 0.1);">
+    <p class="btn-group btn-group-sm" style="width: 100%;">
+      <button id="saveImageButton" class="btn btn-default" style="width: 50%;"><span class="glyphicon glyphicon-save"></span> Save</button>
+      <button id="openImageButton" class="btn btn-default" style="width: 50%;"><span class="glyphicon glyphicon-open"></span> Open</button>
     </p>
-    <p>
-      <button id="resetButton" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-home"></span> Reset</button>
+    <p class="input-group input-group-sm">
+      <input type="text" class="form-control" value="12345"></input>
+      <span class="input-group-btn">
+        <button id="goImageButton" class="btn btn-default"><span class="glyphicon glyphicon-eject"></span></button>
+        <button id="prevImageButton" class="btn btn-default"><span class="glyphicon glyphicon-step-backward"></span></button>
+        <button id="nextImageButton" class="btn btn-default"><span class="glyphicon glyphicon-step-forward"></span></button>
+      </span>
     </p>
-    <h3>Annotations</h3>
+    <h3>Lines</h3>
+    <p>
+      <button id="addLineButton" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-plus"></span> Add Line</button>
+    </p>
     <div class="list-group">
-      <a class="list-group-item" style="padding: 4px; padding-left: 7px;" href="#">Line 1<span class="pull-right"><button class="btn btn-xs btn-danger"><small><span class="glyphicon glyphicon-remove"></span></small></button></span></a>
-      <a class="list-group-item" style="padding: 4px; padding-left: 7px;" href="#">Line 2<span class="pull-right"><button class="btn btn-xs btn-danger"><small><span class="glyphicon glyphicon-remove"></span></small></button></span></a>
-      <a class="list-group-item" style="padding: 4px; padding-left: 7px;" href="#">Line 3<span class="pull-right"><button class="btn btn-xs btn-danger"><small><span class="glyphicon glyphicon-remove"></span></small></button></span></a>
-      <a class="list-group-item" style="padding: 4px; padding-left: 7px;" href="#">Line 4<span class="pull-right"><button class="btn btn-xs btn-danger"><small><span class="glyphicon glyphicon-remove"></span></small></button></span></a>
-      <a class="list-group-item" style="padding: 4px; padding-left: 7px;" href="#">Line 5<span class="pull-right"><button class="btn btn-xs btn-danger"><small><span class="glyphicon glyphicon-remove"></span></small></button></span></a>
-      <a class="list-group-item" style="padding: 4px; padding-left: 7px;" href="#">Line 6<span class="pull-right"><button class="btn btn-xs btn-danger"><small><span class="glyphicon glyphicon-remove"></span></small></button></span></a>
-      <a class="list-group-item" style="padding: 4px; padding-left: 7px;" href="#">Line 7<span class="pull-right"><button class="btn btn-xs btn-danger"><small><span class="glyphicon glyphicon-remove"></span></small></button></span></a>
-      <a class="list-group-item" style="padding: 4px; padding-left: 7px;" href="#">Line 8<span class="pull-right"><button class="btn btn-xs btn-danger"><small><span class="glyphicon glyphicon-remove"></span></small></button></span></a>
-      <a class="list-group-item" style="padding: 4px; padding-left: 7px;" href="#">Line 9<span class="pull-right"><button class="btn btn-xs btn-danger"><small><span class="glyphicon glyphicon-remove"></span></small></button></span></a>
-      <a class="list-group-item" style="padding: 4px; padding-left: 7px;" href="#">Line 1<span class="pull-right"><button class="btn btn-xs btn-danger"><small><span class="glyphicon glyphicon-remove"></span></small></button></span></a>
-      <a class="list-group-item" style="padding: 4px; padding-left: 7px;" href="#">Line 2<span class="pull-right"><button class="btn btn-xs btn-danger"><small><span class="glyphicon glyphicon-remove"></span></small></button></span></a>
-      <a class="list-group-item" style="padding: 4px; padding-left: 7px;" href="#">Line 3<span class="pull-right"><button class="btn btn-xs btn-danger"><small><span class="glyphicon glyphicon-remove"></span></small></button></span></a>
-      <a class="list-group-item" style="padding: 4px; padding-left: 7px;" href="#">Line 4<span class="pull-right"><button class="btn btn-xs btn-danger"><small><span class="glyphicon glyphicon-remove"></span></small></button></span></a>
-      <a class="list-group-item" style="padding: 4px; padding-left: 7px;" href="#">Line 5<span class="pull-right"><button class="btn btn-xs btn-danger"><small><span class="glyphicon glyphicon-remove"></span></small></button></span></a>
-      <a class="list-group-item" style="padding: 4px; padding-left: 7px;" href="#">Line 6<span class="pull-right"><button class="btn btn-xs btn-danger"><small><span class="glyphicon glyphicon-remove"></span></small></button></span></a>
-      <a class="list-group-item" style="padding: 4px; padding-left: 7px;" href="#">Line 7<span class="pull-right"><button class="btn btn-xs btn-danger"><small><span class="glyphicon glyphicon-remove"></span></small></button></span></a>
-      <a class="list-group-item" style="padding: 4px; padding-left: 7px;" href="#">Line 8<span class="pull-right"><button class="btn btn-xs btn-danger"><small><span class="glyphicon glyphicon-remove"></span></small></button></span></a>
-      <a class="list-group-item" style="padding: 4px; padding-left: 7px;" href="#">Line 9<span class="pull-right"><button class="btn btn-xs btn-danger"><small><span class="glyphicon glyphicon-remove"></span></small></button></span></a>
+      <a class="list-group-item" style="padding: 4px; padding-left: 7px;" href="#">Line 1<span class="pull-right"><small><span class="glyphicon glyphicon-remove"></span></small></span></a>
     </div>
+  </div>
+  <div id="utilityView" style="position: fixed; left: 10px; top: 10px; padding-left: 10px; padding-right: 10px; padding-top: 3px, padding-bottom: 3px; border-radius: 5px; background: rgba(255, 255, 255, 0.9); box-shadow: -3px 3px 16px 0px rgba(0, 0, 0, 0.2);">
+    <h4>Utilities</h4>
+    <p>
+      <button id="resetViewButton" class="btn btn-default btn-xs btn-block"><span class="glyphicon glyphicon-home"></span> Reset View</button>
+    </p>
+    <p>
+      <button id="toggleBgButton" class="btn btn-default btn-xs btn-block"><span class="glyphicon glyphicon-adjust"></span> Toggle BG</button>
+    </p>
+    <p>
+      <button id="undoButton" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-chevron-left"></span> Undo</button>
+      <button id="redoButton" class="btn btn-default btn-xs">Redo <span class="glyphicon glyphicon-chevron-right"></span></button>
+    </p>
   </div>
   <script type="text/javascript" src="js/external/jquery-1.11.1.js"></script>
   <script type="text/javascript" src="js/external/jquery-ui.js"></script>
