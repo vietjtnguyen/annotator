@@ -9,6 +9,16 @@ The front end involves a single-page application built using HTML/CSS/JS/SVG.
 Specifically it uses Backbone.js to manage data model synchrony with the back
 and and d3.js for visualization and control.
 
+- `GET /images`
+- `GET /images/{image_id}`
+- `PUT /images/{image_id}`
+- `GET /images/{image_id}/lines`
+- `GET /images/{image_id}/lines/{line_id}`
+- `PUT /images/{image_id}/lines/{line_id}`
+- `GET /images/{image_id}/lines/{line_id}/points`
+- `GET /images/{image_id}/lines/{line_id}/points/{point_id}`
+- `PUT /images/{image_id}/lines/{line_id}/points/{point_id}`
+
 Image Data Model
 ----------------
 

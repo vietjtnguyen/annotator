@@ -1,4 +1,5 @@
 /*
+ * Helpful links:
  * http://stackoverflow.com/questions/16265123/resize-svg-when-window-is-resized-in-d3-js
  * http://stackoverflow.com/questions/6942785/browsers-think-differently-about-window-innerwidth-and-document-documentelement
  * http://bl.ocks.org/mbostock/3892928
@@ -9,61 +10,57 @@
  * http://backbonejs.org/#Model
  * http://backbonejs.org/#Collection
  * http://backbonejs.org/#FAQ-nested
+ * http://stackoverflow.com/questions/18504235/understand-backbone-js-rest-calls
  */
-
-var w = window,
-    d = document,
-    e = d.documentElement;
 
 /*
- * Create some fake data.
+ * Backbone.js definitions.
  */
-dotData =
-  [
-    {"id": 1,  "x": 100, "y": 80},
-    {"id": 2,  "x": 80,  "y": 69},
-    {"id": 3,  "x": 130, "y": 75},
-    {"id": 4,  "x": 90,  "y": 88},
-    {"id": 5,  "x": 110, "y": 83},
-    {"id": 6,  "x": 140, "y": 99},
-    {"id": 7,  "x": 60,  "y": 72},
-    {"id": 8,  "x": 40,  "y": 42},
-    {"id": 9,  "x": 120, "y": 108},
-    {"id": 10, "x": 70,  "y": 48},
-    {"id": 11, "x": 50,  "y": 56},
-  ];
 
-/*
- * Create our Backbone.js Image model.
- */
+var pointId = 0;
+
 var Image = Backbone.Model.extend({
-  /*
-   * This function returns the default attributes for an image.
-   */
+  localStorage: new Backbone.LocalStorage("com.vietjtnguyen.annotator.image"),
   defaults: function() {
     return {
-      "name": "",
-      "width": 0,
-      "height": 0,
-      "url": ""
+      name: "",
+      width: 0,
+      height: 0,
+      url: ""
     };
   },
-  /*
-   * This function validates our model and returns an error string if there is
-   * a validation failure.
-   */
+  initialize: function() {
+  },
   validate: function(attrs, options) {
   }
 });
 
-var imageData = new Image({
-  "name": "2008_000003",
-  "width": 500,
-  "height": 333,
-  "url": "../example-data/images/2008_000003.jpg",
-  "comment": ""
+var ImageCollection = Backbone.Collection.extend({
+  localStorage: new Backbone.LocalStorage("com.vietjtnguyen.annotator.images"),
+  model: Image,
+  initialize: function() {
+  },
 });
 
+var PolyLine = Backbone.Model.extend({
+  localStorage: new Backbone.LocalStorage("com.vietjtnguyen.annotator.polyline"),
+  initialize: function() {
+    this.set("points", []);
+  },
+  toSvgCoord: function() {
+    return _.map(this.get("points"), function(i) { return i.x + "," + i.y; }).join(" ");
+  }
+});
+
+var imageData = new Image({
+  name: "2008_000003",
+  width: 500,
+  height: 333,
+  url: "../example-data/images/2008_000003.jpg",
+  comment: ""
+});
+
+var polyLine = new PolyLine({"id": imageData.get("name")});
 
 /* 
  * Create the zoom behavior. This object is applied to a D3 selection by
@@ -75,11 +72,14 @@ var zoom = d3.behavior.zoom()
     .scaleExtent([0.5, 10])
     .on("zoom", zoomed);
 
+/*
+ * Create the drag behavior that lets us drag points around.
+ */
 var drag = d3.behavior.drag()
     .origin(function(d) { return d; })
-    .on("dragstart", dragstarted)
-    .on("drag", dragged)
-    .on("dragend", dragended);
+    .on("dragstart", dotDragStarted)
+    .on("drag", dotDragged)
+    .on("dragend", dotDragEnded);
     
 /*
  * This is needed to get the canvas to stretch on Firefox.
@@ -150,81 +150,140 @@ origin.append("svg:image")
   .attr("xlink:href", imageData.get("url"));
 
 /*
- * This `rect` is the click target for the whole SVG element.
+ * This `clickRect` is the click target for the whole SVG element.
  */
-var rect = origin.append("rect")
+var clickRect = origin.append("rect")
   .attr("x", gridExtent[0])
   .attr("y", gridExtent[1])
   .attr("width", gridExtent[2] - gridExtent[0] + gridSpacing)
   .attr("height", gridExtent[3] - gridExtent[1] + gridSpacing)
   .style("fill", "none")
   .style("pointer-events", "all")
-  .on("click", mouseclick);
+  .on("click", canvasClick);
 
-// dot = origin.append("g")
-//     .attr("class", "dot")
-//   .selectAll("circle")
-//     .data(dotData)
-//   .enter().append("circle")
-//     /* http://stackoverflow.com/questions/10473328/how-to-draw-non-scalable-circle-in-svg-with-javascript */
-//     .attr("vector-effect", "non-scaling-stroke")
-//     .attr("r", 5)
-//     .attr("cx", function(d) { return d.x; })
-//     .attr("cy", function(d) { return d.y; })
-//     .call(drag);
-
-dot = origin.append("g").attr("class", "dot");
+var line = origin.selectAll("polyline")
+  .data([{"width": 5, "color": "#fff", "opacity": 0.5},
+         {"width": 1, "color": "#000", "opacity": 1}])
+  .enter()
+  .append("polyline")
+  .attr("fill", "none")
+  .attr("points", "")
+  .attr("vector-effect", "non-scaling-stroke")
+  .attr("stroke", function(d) { return d.color; })
+  .attr("stroke-width", function(d) { return d.width; })
+  .style("opacity", function(d) { return d.opacity; });
+var dot = origin.append("g").attr("class", "dot");
 updateDots();
 
 function updateDots() {
-  dot.selectAll("circle")
-    .data(dotData)
-  .enter().append("circle")
+  /*
+   * <http://bost.ocks.org/mike/circles/>
+   * <http://bost.ocks.org/mike/constancy/>
+   */
+  var dotsSelection = dot.selectAll("circle")
+    .data(polyLine.get("points"), function(d) { return d.id; });
+  dotsSelection.transition()
+    .duration(500)
+    .attr("cx", function(d) { return d.x; })
+    .attr("cy", function(d) { return d.y; });
+  dotsSelection.enter().append("circle")
     /* http://stackoverflow.com/questions/10473328/how-to-draw-non-scalable-circle-in-svg-with-javascript */
     .attr("vector-effect", "non-scaling-stroke")
     .attr("r", 5)
     .attr("cx", function(d) { return d.x; })
     .attr("cy", function(d) { return d.y; })
-    .call(drag);
+    .style({"opacity": 0,
+            "stroke-width": "1.5px",
+            "stroke": "rgba(0, 0, 0, 1)",
+            "fill": "rgba(255, 255, 255, 0.8)"})
+    .on("click", dotClick)
+    .on("mouseover", function(d, i) {
+      d3.select(this).transition().duration(250)
+        .attr("r", 10)
+        .style("opacity", 1)
+        .style("fill", "rgba(255, 255, 255, 0.2)")
+        .style("stroke", "rgba(255, 0, 0, 1)");
+    })
+    .on("mouseout", function(d, i) {
+      d3.select(this).transition().duration(250)
+        .attr("r", 5)
+        .style("opacity", 1)
+        .style("fill", "rgba(255, 255, 255, 0.8)")
+        .style("stroke", "rgba(0, 0, 0, 0.5)");
+    })
+    .call(drag)
+    .transition()
+    .duration(250)
+    .style("opacity", 1);
+  dotsSelection.exit()
+    .on("click", null)
+    .on("mouseover", null)
+    .on("mouseout", null)
+    .transition()
+    .duration(250)
+    .style("opacity", 0)
+    .remove();
+  updateLines();
 }
 
-/* This is the zoom callback which will be called on zoom events. Note that it
+function updateLines() {
+  line.attr("points", polyLine.toSvgCoord());
+}
+
+/*
+ * This is the zoom callback which will be called on zoom events. Note that it
  * includes `origin` here via a closure.
  */
 function zoomed() {
-  //origin.attr("transform", "translate(" + d3.event.translate + "), scale(" + d3.event.scale + ")");
   origin.attr("transform", "translate(" + zoom.translate().toString() + "), scale(" + zoom.scale() + ")");
 }
 
-function dragstarted(d) {
+function dotDragStarted(d) {
   d3.event.sourceEvent.stopPropagation();
   d3.select(this).classed("dragging", true);
 }
 
-function dragged(d) {
-  d3.select(this).attr("cx", d.x = d3.event.x).attr("cy", d.y = d3.event.y);
+function dotDragged(d) {
+  d.x = d3.event.x;
+  d.y = d3.event.y;
+  d3.select(this).attr("cx", d.x).attr("cy", d.y);
+  updateLines();
 }
 
-function dragended(d) {
+function dotDragEnded(d) {
   d3.select(this).classed("dragging", false);
+  updateLines();
 }
 
-function mouseclick(d, i) {
-  /* http://stackoverflow.com/questions/19075381/d3-mouse-events-click-dragend */
+function dotClick(d, i) {
+  /* <http://stackoverflow.com/questions/19075381/d3-mouse-events-click-dragend> */
   if (d3.event.defaultPrevented) return;
-  /* http://stackoverflow.com/questions/10247209/d3-click-coordinates-are-relative-to-page-not-svg-how-to-translate-them-chrom */
-  var mousePosition = d3.mouse(this);
-  dotData.push({
-    "id": 1,
-    "x": mousePosition[0],
-    "y": mousePosition[1]
-  });
-  updateDots();
+  if (d3.event.ctrlKey) {
+    var points = polyLine.get("points");
+    /* <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/unshift> */
+    points.splice(points.indexOf(d), 1);
+    updateDots();
+  }
 }
 
-/* This function returns a two element array containing the "window" width and
+function canvasClick(d, i) {
+  /* <http://stackoverflow.com/questions/19075381/d3-mouse-events-click-dragend> */
+  console.log(d3.event);
+  if (d3.event.defaultPrevented) return;
+  if (!d3.event.ctrlKey) {
+    /* <http://stackoverflow.com/questions/10247209/d3-click-coordinates-are-relative-to-page-not-svg-how-to-translate-them-chrom> */
+    var mousePosition = d3.mouse(this);
+    var newPoint = {"id": pointId += 1, "x": mousePosition[0], "y": mousePosition[1]};
+    polyLine.get("points").push(newPoint);
+    updateDots();
+  }
+}
+
+/* 
+ * This function returns a two element array containing the "window" width and
  * height respectively.
- * http://stackoverflow.com/questions/16265123/resize-svg-when-window-is-resized-in-d3-js */
+ * <http://stackoverflow.com/questions/16265123/resize-svg-when-window-is-resized-in-d3-js>
+ */
 function getWindowSize() {
     var w = window,
         d = document,
@@ -271,3 +330,22 @@ function resetView(d, i) {
 
 d3.select("#resetButton").on("click", resetView);
 resetView();
+
+d3.select("#saveButton").on("click", function(d, i) {
+  polyLine.save();
+});
+
+d3.select("#openButton").on("click", function(d, i) {
+  polyLine.fetch({
+    success: function(model, response, options) {
+      console.log("fetch success");
+      console.log(model);
+      console.log(response);
+      pointId = _.max(polyLine.get("points"), function(i) { return i.id; });
+    },
+    error: function(model, response, options) {
+      console.log("fetch fail");
+    }
+  });
+  updateDots();
+});
