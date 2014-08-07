@@ -1,39 +1,48 @@
 <!DOCTYPE html>
+<!--
+<http://stackoverflow.com/questions/9735513/how-to-place-a-div-on-the-right-side-with-absolute-position>
+<http://stackoverflow.com/questions/2469529/how-to-disable-scrolling-the-document-body>
+<http://css3gen.com/box-shadow/>
+<http://math.stackexchange.com/questions/296794/finding-the-transform-matrix-from-4-projected-points-with-javascript>
+<http://www.w3.org/TR/css3-transforms/#transform-functions>
+-->
 <html lang="en">
+
 <head>
   <meta charset="utf-8">
   <title>Annotator</title>
   <link rel="stylesheet" type="text/css" href="css/external/bootstrap.css">
   <link rel="stylesheet" type="text/css" href="css/annotator.css"/>
 </head>
+
 <body style="overflow: hidden; background: #fff">
-  <!--
-  <http://stackoverflow.com/questions/9735513/how-to-place-a-div-on-the-right-side-with-absolute-position>
-  <http://stackoverflow.com/questions/2469529/how-to-disable-scrolling-the-document-body>
-  <http://css3gen.com/box-shadow/>
-  -->
-  <div style="position: fixed; right: 0px; top: 0px; padding: 10px; background: rgba(255, 255, 255, 0.9); overflow-y: scroll; width: 200px; height: 100%; box-shadow: -5px 0px 8px 0px rgba(0, 0, 0, 0.1);">
-    <p class="btn-group btn-group-sm" style="width: 100%;">
-      <button id="saveImageButton" class="btn btn-default" style="width: 50%;"><span class="glyphicon glyphicon-save"></span> Save</button>
-      <button id="openImageButton" class="btn btn-default" style="width: 50%;"><span class="glyphicon glyphicon-open"></span> Open</button>
-    </p>
-    <p class="input-group input-group-sm">
-      <input type="text" class="form-control" value="12345"></input>
-      <span class="input-group-btn">
-        <button id="goImageButton" class="btn btn-default"><span class="glyphicon glyphicon-eject"></span></button>
-        <button id="prevImageButton" class="btn btn-default"><span class="glyphicon glyphicon-step-backward"></span></button>
-        <button id="nextImageButton" class="btn btn-default"><span class="glyphicon glyphicon-step-forward"></span></button>
-      </span>
-    </p>
-    <h3>Lines</h3>
-    <p>
-      <button id="addLineButton" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-plus"></span> Add Line</button>
-    </p>
-    <div class="list-group">
-      <a class="list-group-item" style="padding: 4px; padding-left: 7px;" href="#">Line 1<span class="pull-right"><small><span class="glyphicon glyphicon-remove"></span></small></span></a>
+  <div id="toolPane">
+    <div id="imageControlSection">
+      <p class="btn-group btn-group-sm" style="width: 100%;">
+        <button id="saveImageButton" class="btn btn-default" style="width: 50%;"><span class="glyphicon glyphicon-save"></span> Save</button>
+        <button id="openImageButton" class="btn btn-default" style="width: 50%;"><span class="glyphicon glyphicon-open"></span> Open</button>
+      </p>
+      <p class="input-group input-group-sm">
+        <input type="text" class="form-control" value="12345"></input>
+        <span class="input-group-btn">
+          <button id="goImageButton" class="btn btn-default"><span class="glyphicon glyphicon-eject"></span></button>
+          <button id="prevImageButton" class="btn btn-default"><span class="glyphicon glyphicon-step-backward"></span></button>
+          <button id="nextImageButton" class="btn btn-default"><span class="glyphicon glyphicon-step-forward"></span></button>
+        </span>
+      </p>
+    </div>
+    <div id="lineControlSection">
+      <h3>Lines</h3>
+      <p>
+        <button id="addLineButton" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-plus"></span> Add Line</button>
+      </p>
+      <div class="list-group">
+        <a class="list-group-item" style="padding: 4px; padding-left: 7px;" href="#">Line 1<span class="pull-right"><small><span class="glyphicon glyphicon-remove"></span></small></span></a>
+      </div>
     </div>
   </div>
-  <div id="utilityView" style="position: fixed; left: 10px; top: 10px; padding-left: 10px; padding-right: 10px; padding-top: 3px, padding-bottom: 3px; border-radius: 5px; background: rgba(255, 255, 255, 0.9); box-shadow: -3px 3px 16px 0px rgba(0, 0, 0, 0.2);">
+  
+  <div id="utilityBox">
     <h4>Utilities</h4>
     <p>
       <button id="resetViewButton" class="btn btn-default btn-xs btn-block"><span class="glyphicon glyphicon-home"></span> Reset View</button>
@@ -42,17 +51,25 @@
       <button id="toggleBgButton" class="btn btn-default btn-xs btn-block"><span class="glyphicon glyphicon-adjust"></span> Toggle BG</button>
     </p>
     <p>
+      <button id="toggleGridButton" class="btn btn-default btn-xs btn-block"><span class="glyphicon glyphicon-th"></span> Toggle Grid</button>
+    </p>
+    <p>
       <button id="undoButton" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-chevron-left"></span> Undo</button>
       <button id="redoButton" class="btn btn-default btn-xs">Redo <span class="glyphicon glyphicon-chevron-right"></span></button>
     </p>
   </div>
+
   <script type="text/javascript" src="js/external/jquery-1.11.1.js"></script>
   <script type="text/javascript" src="js/external/jquery-ui.js"></script>
+  <script type="text/javascript" src="js/external/bootstrap.js"></script>
   <script type="text/javascript" src="js/external/d3.js"></script>
   <script type="text/javascript" src="js/external/underscore.js"></script>
   <script type="text/javascript" src="js/external/backbone.js"></script>
   <script type="text/javascript" src="js/external/backbone.localStorage.js"></script>
-  <script type="text/javascript" src="js/external/bootstrap.js"></script>
+  <script type="text/javascript" src="js/models.js"></script>
+  <script type="text/javascript" src="js/views.js"></script>
   <script type="text/javascript" src="js/annotator.js"></script>
+
 </body>
+
 </html>
