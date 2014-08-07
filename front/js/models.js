@@ -6,6 +6,8 @@ var App = Backbone.Model.extend({
   localStorage: new Backbone.LocalStorage("com.vietjtnguyen.annotator.application"),
   defaults: {
     activeImage: "2008_000003",
+    background: "light",
+    grid: "off",
     zoom: {
       translate: [0, 0],
       scale: 1

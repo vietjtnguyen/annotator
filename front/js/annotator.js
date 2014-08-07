@@ -17,6 +17,7 @@
  */
 
 var app = new App({
+  id: 0,
   currentImage: new Image({
     name: "2008_000003",
     width: 500,
@@ -25,9 +26,14 @@ var app = new App({
     comment: ""
   })
 });
-
-var appPresenter = new AppPresenter(app);
+var appView = new AppView({model: app, el: $("body")[0]});
 var polyLine = new PolyLine({"id": app.get("currentImage").get("name")});
+
+app.fetch({
+  update: true,
+  success: function(model, response, options) { console.log("success"); },
+  error: function() { console.log("error"); }
+});
 
 /*
 * Create the drag behavior that lets us drag points around.

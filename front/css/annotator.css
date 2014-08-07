@@ -10,6 +10,13 @@ body {
   margin: 0px;
   width: 100%;
   height: 100%;
+  overflow: hidden;
+}
+body.light {
+  background: #fff;
+}
+body.dark {
+  background: #000;
 }
 
 svg.workingArea {
@@ -30,10 +37,15 @@ svg.workingArea {
 }
 
 .grid {
-  display: none;
   fill: none;
   shape-rendering: "crispEdges";
   vector-effect: "non-scaling-stroke";
+}
+.grid.on {
+  display: inline;
+}
+.grid.off {
+  display: none;
 }
 .grid.light {
   stroke: #eee;
