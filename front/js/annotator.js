@@ -1,54 +1,59 @@
-/*
- * Helpful links:
- * http://stackoverflow.com/questions/16265123/resize-svg-when-window-is-resized-in-d3-js
- * http://stackoverflow.com/questions/6942785/browsers-think-differently-about-window-innerwidth-and-document-documentelement
- * http://bl.ocks.org/mbostock/3892928
- * http://bl.ocks.org/mbostock/6123708
- * http://stackoverflow.com/questions/19075381/d3-mouse-events-click-dragend
- * http://getbootstrap.com/css
- * http://getbootstrap.com/components
- * http://backbonejs.org/#Model
- * http://backbonejs.org/#Collection
- * http://backbonejs.org/#FAQ-nested
- * http://stackoverflow.com/questions/18504235/understand-backbone-js-rest-calls
- * http://jstarrdewar.com/blog/2012/07/20/the-correct-way-to-override-concrete-backbone-methods/
- * https://github.com/mbostock/d3/wiki/Selections#animation--interaction
- *   The `this` context of an event callback in D3 is the DOM element.
- */
+// Helpful links:
+// http://stackoverflow.com/questions/16265123/resize-svg-when-window-is-resized-in-d3-js
+// http://stackoverflow.com/questions/6942785/browsers-think-differently-about-window-innerwidth-and-document-documentelement
+// http://bl.ocks.org/mbostock/3892928
+// http://bl.ocks.org/mbostock/6123708
+// http://stackoverflow.com/questions/19075381/d3-mouse-events-click-dragend
+// http://getbootstrap.com/css
+// http://getbootstrap.com/components
+// http://backbonejs.org/#Model
+// http://backbonejs.org/#Collection
+// http://backbonejs.org/#FAQ-nested
+// http://stackoverflow.com/questions/18504235/understand-backbone-js-rest-calls
+// http://jstarrdewar.com/blog/2012/07/20/the-correct-way-to-override-concrete-backbone-methods/
+// https://github.com/mbostock/d3/wiki/Selections#animation--interaction
+//   The `this` context of an event callback in D3 is the DOM element.
+// http://stackoverflow.com/questions/19851171/nested-backbone-model-results-in-infinite-recursion-when-saving
+// http://stackoverflow.com/questions/6535948/nested-models-in-backbone-js-how-to-approach
 
+var currentImage = new Image({
+  id: "2008_000003",
+  width: 500,
+  height: 333,
+  url: "../example-data/images/2008_000003.jpg",
+  comment: ""
+});
+var currentAnnotation = new ParallelLineAnnotation ({
+  image: currentImage
+});
+currentAnnotation.get("lines").add(new Line());
 var app = new App({
   id: 0,
-  currentImage: new Image({
-    name: "2008_000003",
-    width: 500,
-    height: 333,
-    url: "../example-data/images/2008_000003.jpg",
-    comment: ""
-  })
+  currentAnnotation: currentAnnotation
 });
+
 var appView = new AppView({model: app, el: $("body")[0]});
-var polyLine = new PolyLine({"id": app.get("currentImage").get("name")});
 
 app.fetch({
   update: true,
-  success: function(model, response, options) { console.log("success"); },
+  success: function(model, response, options) {
+    app.get("currentAnnotation").fetch();
+  },
   error: function() { console.log("error"); }
 });
 
-/*
-* Create the drag behavior that lets us drag points around.
-*/
+//Create the drag behavior that lets us drag points around.
 var drag = d3.behavior.drag()
     .origin(function(d) { return d; })
     .on("dragstart", dotDragStarted)
     .on("drag", dotDragged)
     .on("dragend", dotDragEnded);
 
-var line = d3.select("#origin").selectAll("polyline")
+var lineSelection = d3.select("#origin").selectAll("polygon")
   .data([{"width": 3, color: "#fff", opacity: 0.5, linecap: "round"},
          {"width": 1, color: "#000", opacity: 1, linecap: "butt"}])
   .enter()
-  .append("polyline")
+  .append("polygon")
   .attr("fill", "none")
   .attr("points", "")
   .attr("vector-effect", "non-scaling-stroke")
@@ -61,18 +66,16 @@ var dot = d3.select("#origin").append("g").attr("class", "dot");
 updateDots();
 
 function updateDots() {
-  /*
-   * <http://bost.ocks.org/mike/circles/>
-   * <http://bost.ocks.org/mike/constancy/>
-   */
+  // <http://bost.ocks.org/mike/circles/>
+  // <http://bost.ocks.org/mike/constancy/>
   var dotsSelection = dot.selectAll("circle")
-    .data(polyLine.get("points").models, function(d) { return d.id || d.cid; });
+    .data(app.get("currentAnnotation").get("lines").first().get("points").models, function(d) { return d.id || d.cid; });
   dotsSelection.transition()
     .duration(500)
     .attr("cx", function(d) { return d.x; })
     .attr("cy", function(d) { return d.y; });
   dotsSelection.enter().append("circle")
-    /* http://stackoverflow.com/questions/10473328/how-to-draw-non-scalable-circle-in-svg-with-javascript */
+    // http://stackoverflow.com/questions/10473328/how-to-draw-non-scalable-circle-in-svg-with-javascript 
     .attr("vector-effect", "non-scaling-stroke")
     .attr("r", 5)
     .attr("cx", function(d) { return d.x; })
@@ -116,7 +119,7 @@ function updateDots() {
 }
 
 function updateLines() {
-  line.attr("points", polyLine.toSvgCoord());
+  lineSelection.attr("points", app.get("currentAnnotation").get("lines").first().toSvgCoord());
 }
 
 function dotDragStarted(d, i) {
@@ -136,6 +139,7 @@ function dotDragEnded(d, i) {
   console.log(d);
   console.log(i);
   d3.select(this).classed("dragging", false);
+  app.get("currentAnnotation").save();
   updateLines();
 }
 
@@ -143,21 +147,18 @@ function dotClick(d, i) {
   console.log("dotClick");
   console.log(d);
   console.log(i);
-  /* <http://stackoverflow.com/questions/19075381/d3-mouse-events-click-dragend> */
+  // <http://stackoverflow.com/questions/19075381/d3-mouse-events-click-dragend> 
   if (d3.event.defaultPrevented) return;
   if (d3.event.ctrlKey) {
-    var points = polyLine.get("points");
-    /* <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/unshift> */
+    var points = app.get("currentAnnotation").get("lines").first().get("points");
     points.remove(d);
     updateDots();
   }
 }
 
-/* 
- * This function returns a two element array containing the "window" width and
- * height respectively.
- * <http://stackoverflow.com/questions/16265123/resize-svg-when-window-is-resized-in-d3-js>
- */
+// This function returns a two element array containing the "window" width and
+// height respectively.
+// <http://stackoverflow.com/questions/16265123/resize-svg-when-window-is-resized-in-d3-js>
 function getWindowSize() {
     var w = window,
         d = document,
@@ -168,11 +169,11 @@ function getWindowSize() {
 }
 
 d3.select("#saveImageButton").on("click", function(d, i) {
-  polyLine.save();
+  app.get("currentAnnotation").get("lines").first().save();
 });
 
 d3.select("#openImageButton").on("click", function(d, i) {
-  polyLine.fetch({
+  app.get("currentAnnotation").get("lines").first().fetch({
     success: function(model, response, options) {
       console.log("fetch success");
       console.log(model);

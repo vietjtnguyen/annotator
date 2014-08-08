@@ -36,7 +36,7 @@
       <p>
         <button id="addLineButton" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-plus"></span> Add Line</button>
       </p>
-      <div class="list-group">
+      <div id="lineListing" class="list-group">
         <a class="list-group-item" style="padding: 4px; padding-left: 7px;" href="#">Line 1<span class="pull-right"><small><span class="glyphicon glyphicon-remove"></span></small></span></a>
       </div>
     </div>
@@ -59,6 +59,13 @@
     </p>
   </div>
 
+  <script type="text/template" id="lineItemTemplate">
+    <a class="list-group-item" style="padding: 4px; padding-left: 7px;" id="lineItem<%= index >">
+      Line <%= index %>
+      <span class="pull-right"><small><span class="glyphicon glyphicon-remove"></span></small></span>
+    </a>
+  </script>
+
   <script type="text/javascript" src="js/external/jquery-1.11.1.js"></script>
   <script type="text/javascript" src="js/external/jquery-ui.js"></script>
   <script type="text/javascript" src="js/external/bootstrap.js"></script>
@@ -66,6 +73,7 @@
   <script type="text/javascript" src="js/external/underscore.js"></script>
   <script type="text/javascript" src="js/external/backbone.js"></script>
   <script type="text/javascript" src="js/external/backbone.localStorage.js"></script>
+  <script type="text/javascript" src="js/external/backbone.momento.js"></script>
   <script type="text/javascript" src="js/models.js"></script>
   <script type="text/javascript" src="js/views.js"></script>
   <script type="text/javascript" src="js/annotator.js"></script>

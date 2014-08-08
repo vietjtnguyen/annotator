@@ -1,54 +1,15 @@
-/*
- * The App model represents application information such as the current active
- * image, model states, zoom/pan parameters, etc. It is saved to local storage.
- */
-var App = Backbone.Model.extend({
-  localStorage: new Backbone.LocalStorage("com.vietjtnguyen.annotator.application"),
-  defaults: {
-    activeImage: "2008_000003",
-    background: "light",
-    grid: "off",
-    zoom: {
-      translate: [0, 0],
-      scale: 1
-    }
-  },
-  initialize: function() {
-  }
-});
-
-var Image = Backbone.Model.extend({
-  localStorage: new Backbone.LocalStorage("com.vietjtnguyen.annotator.image"),
-  defaults: {
-    name: "",
-    width: 0,
-    height: 0,
-    url: ""
-  },
-  initialize: function() {
-  },
-  validate: function(attrs, options) {
-  }
-});
-
-var ImageCollection = Backbone.Collection.extend({
-  localStorage: new Backbone.LocalStorage("com.vietjtnguyen.annotator.images"),
-  model: Image,
-  initialize: function() {
-  },
-});
-
+// This model represents a single point. The points aren't stored as separate
+// entities but rather with the point sets. However, the use of a model for
+// points is useful for giving each point a unique id.
 var Point = Backbone.Model.extend({
   localStorage: new Backbone.LocalStorage("com.vietjtnguyen.annotator.point"),
   initialize: function() {
-    /*
-     * These getters and setters need to be defined for the D3 drag behavior to
-     * modify correctly because these values are accessible from the model via
-     * the `get` method but D3 expects to modify them directly as properties
-     * (e.g. `d.x` and `d.y`, not `d.get("x")` and `d.get("y")`).
-     * <https://github.com/mbostock/d3/wiki/Drag-Behavior#on>
-     * <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty>
-     */
+    // These getters and setters need to be defined for the D3 drag behavior to
+    // modify correctly because these values are accessible from the model via
+    // the `get` method but D3 expects to modify them directly as properties
+    // (e.g. `d.x` and `d.y`, not `d.get("x")` and `d.get("y")`).
+    // <https://github.com/mbostock/d3/wiki/Drag-Behavior#on>
+    // <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty>
     Object.defineProperty(this, "x",{
       get: function() { return this.get("x"); },
       set: function(value) { this.set("x", value); }
@@ -67,23 +28,32 @@ var Point = Backbone.Model.extend({
   }
 });
 
+// This collection represents an ordered set of points.
 var PointCollection = Backbone.Collection.extend({
   localStorage: new Backbone.LocalStorage("com.vietjtnguyen.annotator.points"),
   model: Point,
   toSvgCoord: function() {
-    /* <http://underscorejs.org/#invoke> */
+    // <http://underscorejs.org/#invoke> 
     return this.invoke("toSvgCoord").join(" ");
   }
 });
 
-var PolyLine = Backbone.Model.extend({
-  localStorage: new Backbone.LocalStorage("com.vietjtnguyen.annotator.polyline"),
-  initialize: function() {
-    this.set("points", new PointCollection());
+var OrderedPointSet = Backbone.Model.extend({
+  localStorage: new Backbone.LocalStorage("com.vietjtnguyen.annotator.orderedpointset"),
+  defaults: {
+    points: new PointCollection()
   },
-  parse: function(response) {
-    var points = this.get("points");
-    points.reset(response.points);
+  models: {
+    points: PointCollection  
+  },
+  initialize: function() {
+  },
+  parse: function(response, options) {
+    var self = this;
+    _.forEach(self.models, function(Model, attributeName) {
+      response[attributeName] = new Model(response[attributeName], {parse: true});
+    });
+    return response;
   },
   save: function(attributes, options) {
     this.get("points").forEach(function(i) { i.save(); });
@@ -94,5 +64,119 @@ var PolyLine = Backbone.Model.extend({
   // }
   toSvgCoord: function() {
     return this.get("points").toSvgCoord();
+  }
+});
+
+var Line = _.extend(OrderedPointSet, {
+  localStorage: new Backbone.LocalStorage("com.vietjtnguyen.annotator.line"),
+  canAddPoint: function() {
+    return this.get("points").length < 2;
+  },
+  validate: function(attributes, options) {
+    if (this.get("points").length == 2) {
+      return "line requires exactly two points";
+    }
+  }
+});
+
+var PolyLine = _.extend(OrderedPointSet, {
+  localStorage: new Backbone.LocalStorage("com.vietjtnguyen.annotator.polyline"),
+  canAddPoint: function() {
+    return true;
+  }
+});
+
+var Polygon = _.extend(OrderedPointSet, {
+  localStorage: new Backbone.LocalStorage("com.vietjtnguyen.annotator.polygon"),
+  canAddPoint: function() {
+    return true;
+  },
+  validate: function(attributes, options) {
+    if (this.get("points").length < 3) {
+      return "polygon requires at least three points";
+    }
+  }
+});
+
+var LineCollection = Backbone.Collection.extend({
+  localStorage: new Backbone.LocalStorage("com.vietjtnguyen.annotator.lines"),
+  model: Line
+});
+
+var PolyLineCollection = Backbone.Collection.extend({
+  localStorage: new Backbone.LocalStorage("com.vietjtnguyen.annotator.polylines"),
+  model: PolyLine
+});
+
+var PolygonCollection = Backbone.Collection.extend({
+  localStorage: new Backbone.LocalStorage("com.vietjtnguyen.annotator.polygon"),
+  model: Polygon
+});
+
+// This model represents an image along with its meta data (width, height,
+// actual URL, etc.). The images are separate from the annotations because
+// multiple annotations can exist for each image.
+var Image = Backbone.Model.extend({
+  localStorage: new Backbone.LocalStorage("com.vietjtnguyen.annotator.image"),
+  defaults: {
+    width: 0,
+    height: 0,
+    url: ""
+  }
+});
+
+var ParallelLineAnnotation = Backbone.Model.extend({
+  localStorage: new Backbone.LocalStorage("com.vietjtnguyen.annotator.parallellineannotation"),
+  defaults: {
+    image: null,
+    lines: new LineCollection()
+  },
+  models: {
+    lines: LineCollection  
+  },
+  initialize: function() {
+  },
+  parse: function(response, options) {
+    var self = this;
+    _.forEach(self.models, function(Model, attributeName) {
+      response[attributeName] = new Model(response[attributeName], {parse: true});
+    });
+    return response;
+  }
+});
+
+// The App model represents application information such as the current active
+// image, model states, zoom/pan parameters, etc. It is saved to local storage.
+var App = Backbone.Model.extend({
+  localStorage: new Backbone.LocalStorage("com.vietjtnguyen.annotator.application"),
+  defaults: {
+    currentAnnotation: null,
+    background: "light",
+    grid: "off",
+    zoom: {
+      translate: [0, 0],
+      scale: 1
+    }
+  },
+  proxy: ["currentAnnotation"],
+  models: {
+    currentAnnotation: ParallelLineAnnotation  
+  },
+  initialize: function() {
+  },
+  toJSON: function(options) {
+    var self = this;
+    var jsonObject = _.clone(self.attributes);
+    _.forEach(self.proxy, function(attributeName) {
+      jsonObject[attributeName] = _.pick(jsonObject[attributeName], ["id"])
+    });
+    return jsonObject;
+  },
+  parse: function(response, options) {
+    var self = this;
+    _.forEach(self.models, function(Model, attributeName) {
+      response[attributeName] = new Model(response[attributeName], {parse: true});
+    });
+    return response;
   }
 });
