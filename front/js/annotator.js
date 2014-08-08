@@ -37,7 +37,9 @@ var appView = new AppView({model: app, el: $("body")[0]});
 app.fetch({
   update: true,
   success: function(model, response, options) {
-    app.get("currentAnnotation").fetch();
+    app.get("currentAnnotation").fetch({
+      success: function(model, response, options) {
+    });
   },
   error: function() { console.log("error"); }
 });
@@ -69,7 +71,7 @@ function updateDots() {
   // <http://bost.ocks.org/mike/circles/>
   // <http://bost.ocks.org/mike/constancy/>
   var dotsSelection = dot.selectAll("circle")
-    .data(app.get("currentAnnotation").get("lines").first().get("points").models, function(d) { return d.id || d.cid; });
+    .data(app.get("currentAnnotation").get("lines").first().get("points"), function(d) { return d.id || d.cid; });
   dotsSelection.transition()
     .duration(500)
     .attr("cx", function(d) { return d.x; })

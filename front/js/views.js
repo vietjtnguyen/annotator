@@ -1,5 +1,5 @@
 var LineItemView = Backbone.View.extend({
-  //template: _.template($("#lineItemTemplate").html()),
+  template: _.template($("#lineItemTemplate").html()),
   initialize: function() {
   },
   render: function() {
@@ -27,15 +27,18 @@ var LineListingView = Backbone.View.extend({
     });
   },
   render: function() {
+    console.log("LineListingView.render");
     var self = this;
     return self;
   },
   addLine: function(newLineModel) {
+    console.log("LineListingView.addLine");
     var self = this;
     var lineItemView = new LineItemView({model: newLineModel});
     self.$el.append(lineItemView.render().el);
   },
   addAllLines: function() {
+    console.log("LineListingView.addAllLines");
     var self = this;
     self.collection.forEach(self.addLine, self);
   }
@@ -66,6 +69,10 @@ var AppView = Backbone.View.extend({
   initialize: function() {
     var self = this;
     self.create();
+    self.lineListingView = new LineListingView({
+      collection: self.model.get("currentAnnotation").get("lines"),
+      el: $("#lineListing")[0]
+    });
     self.delegateModelEvents();
     self.delegateD3Events();
   },
