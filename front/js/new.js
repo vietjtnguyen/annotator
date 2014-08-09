@@ -41,13 +41,14 @@ function guid() {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-var Point = function(x, y) {
-  this.x = x || 0;
-  this.y = y || 0;
+var Point = function(hash) {
+  var self = this;
+  _.extend(self, {id: "", x: 0, y: 0}, hash);
 };
 
 Point.prototype.toSvgCoord = function() {
-  return this.x.toString() + "," + this.y.toString();
+  var self = this;
+  return self.x.toString() + "," + self.y.toString();
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -57,9 +58,9 @@ var PointSet = Backbone.Model.extend({
   defaults: {
     points: []
   },
-  toSvgCoord: function() {
+  toSvgCoords: function() {
     // <http://underscorejs.org/#invoke> 
-    _.invoke(this.get("points"), "toSvgCoord").join(" ");
+    return _.invoke(this.get("points"), "toSvgCoord").join(" ");
   }
 });
 
@@ -208,6 +209,19 @@ var PointSetWorkingView = Backbone.View.extend({
     self.drag = d3.behavior.drag()
       .origin(function(d) { return d; });
     self.setElement(self.setGroup.node());
+    self.lineSelection = self.setGroup.selectAll("polygon")
+      .data([{"width": 3, color: "#fff", opacity: 0.5, linecap: "round"},
+            {"width": 1, color: "#000", opacity: 1, linecap: "butt"}])
+      .enter()
+      .append("polygon")
+      .attr("fill", "none")
+      .attr("points", "")
+      .attr("vector-effect", "non-scaling-stroke")
+      .attr("stroke", function(d) { return d.color; })
+      .attr("stroke-width", function(d) { return d.width; })
+      .attr("stroke-linecap", function(d) { return d.linecap; })
+      .attr("stroke-linejoin", "round")
+      .style("opacity", function(d) { return d.opacity; });
   },
   // Set up the D3 events such that the this context of the callback is the
   // view itself (instead of the DOM element which is the default D3 behavior)
@@ -248,7 +262,7 @@ var PointSetWorkingView = Backbone.View.extend({
               "stroke-opacity": 0.1,
               fill: "#fff",
               "fill-opacity": 0.1})
-      .on("click", function(d, i) { self.dotClick(this, d, i); })
+      .on("click", function(d, i) { self.dotClick(self, d, i); })
       .on("mouseover", function(d, i) {
         d3.select(this).transition().duration(250)
           .attr("r", 10)
@@ -277,6 +291,7 @@ var PointSetWorkingView = Backbone.View.extend({
       .duration(250)
       .style("opacity", 0)
       .remove();
+    self.lineSelection.attr("points", self.model.toSvgCoords());
     return self;
   },
   dotClick: function(domElement, datum, index) {
@@ -287,13 +302,17 @@ var PointSetWorkingView = Backbone.View.extend({
     // <http://stackoverflow.com/questions/19075381/d3-mouse-events-click-dragend> 
     if (d3.event.defaultPrevented) return;
     if (d3.event.ctrlKey) {
-      self.model.get("points").remove(datum);
+      var points = self.model.get("points");
+      points.splice(points.indexOf(datum), 1);
       self.model.trigger("change:points");
     }
+    self.collection.select(self.model);
   },
   dotDragStarted: function(domElement, datum, index) {
+    var self = this;
     d3.event.sourceEvent.stopPropagation();
     d3.select(domElement).classed("dragging", true);
+    self.collection.select(self.model);
   },
   dotDragged: function(domElement, datum, index) {
     var self = this;
@@ -591,11 +610,11 @@ appState.pointSets.listenTo(workingAreaView, "workingAreaClick", function(mouseP
   console.log(mousePosition);
   var activePointSet = appState.pointSets.getSelected();
   if (activePointSet) {
-    var point = {
+    var point = new Point({
+      id: guid(),
       x: mousePosition[0],
-      y: mousePosition[1],
-      id: guid()
-    };
+      y: mousePosition[1]
+    });
     var points = activePointSet.get("points");
     activePointSet.set("points", _.union(points, [point]))
   }
