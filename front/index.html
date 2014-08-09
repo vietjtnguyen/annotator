@@ -16,6 +16,24 @@
 </head>
 
 <body>
+  
+  <div id="utilityBox">
+    <h4>Utilities</h4>
+    <p>
+      <button id="resetViewButton" class="btn btn-default btn-xs btn-block"><span class="glyphicon glyphicon-home"></span> Reset View</button>
+    </p>
+    <p>
+      <button id="toggleBgButton" class="btn btn-default btn-xs btn-block"><span class="glyphicon glyphicon-adjust"></span> Toggle BG</button>
+    </p>
+    <p>
+      <button id="toggleGridButton" class="btn btn-default btn-xs btn-block"><span class="glyphicon glyphicon-th"></span> Toggle Grid</button>
+    </p>
+    <p>
+      <button id="undoButton" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-chevron-left"></span> Undo</button>
+      <button id="redoButton" class="btn btn-default btn-xs">Redo <span class="glyphicon glyphicon-chevron-right"></span></button>
+    </p>
+  </div>
+
   <div id="toolPane">
     <div id="imageControlSection">
       <p class="btn-group btn-group-sm" style="width: 100%;">
@@ -40,29 +58,16 @@
       </div>
     </div>
   </div>
-  
-  <div id="utilityBox">
-    <h4>Utilities</h4>
-    <p>
-      <button id="resetViewButton" class="btn btn-default btn-xs btn-block"><span class="glyphicon glyphicon-home"></span> Reset View</button>
-    </p>
-    <p>
-      <button id="toggleBgButton" class="btn btn-default btn-xs btn-block"><span class="glyphicon glyphicon-adjust"></span> Toggle BG</button>
-    </p>
-    <p>
-      <button id="toggleGridButton" class="btn btn-default btn-xs btn-block"><span class="glyphicon glyphicon-th"></span> Toggle Grid</button>
-    </p>
-    <p>
-      <button id="undoButton" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-chevron-left"></span> Undo</button>
-      <button id="redoButton" class="btn btn-default btn-xs">Redo <span class="glyphicon glyphicon-chevron-right"></span></button>
-    </p>
-  </div>
 
-  <script type="text/template" id="lineItemTemplate">
-    <a class="list-group-item" style="padding: 4px; padding-left: 7px;" id="lineItem<%= index %>">
-      Line <%= index %>
-      <span class="pull-right"><small><span class="glyphicon glyphicon-remove"></span></small></span>
-    </a>
+  <svg id="workingArea">
+    <g id="origin" transform="translate(0, 0), scale(1)">
+      <g id="gridLines"></g>
+      <image width="0" height="0" href=""></image>
+    </g>
+  </svg>
+
+  <script type="text/template" id="pointSetItemTemplate">
+    <a class="list-group-item" style="padding: 4px; padding-left: 7px;" id="lineItem<%= index %>"><span id="text">Line <%= index %> </span><span class="pull-right"><small><button class="btn btn-xs glyphicon glyphicon-remove" style="margin-top: -5px"></button></small></span></a>
   </script>
 
   <script type="text/javascript" src="js/external/jquery-1.11.1.js"></script>
@@ -73,9 +78,12 @@
   <script type="text/javascript" src="js/external/backbone.js"></script>
   <script type="text/javascript" src="js/external/backbone.localStorage.js"></script>
   <script type="text/javascript" src="js/external/backbone.momento.js"></script>
+  <!--
   <script type="text/javascript" src="js/models.js"></script>
   <script type="text/javascript" src="js/views.js"></script>
   <script type="text/javascript" src="js/annotator.js"></script>
+  -->
+  <script type="text/javascript" src="js/new.js"></script>
 
 </body>
 

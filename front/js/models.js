@@ -163,7 +163,7 @@ var ParallelLineAnnotation = Backbone.Model.extend({
 // The App model represents application information such as the current active
 // image, model states, zoom/pan parameters, etc. It is saved to local storage.
 var App = Backbone.Model.extend({
-  localStorage: new Backbone.LocalStorage("com.vietjtnguyen.annotator.application"),
+  localStorage: new Backbone.LocalStorage("com.vietjtnguyen.annotator.App"),
   defaults: {
     currentAnnotation: null,
     background: "light",

@@ -2,8 +2,8 @@
  * This is needed to get the canvas to stretch on Firefox.
  */
 html {
-  width: "100%";
-  height: "100%";
+  width: 100%;
+  height: 100%;
 }
 
 body {
@@ -19,7 +19,7 @@ body.dark {
   background: #000;
 }
 
-svg.workingArea {
+#workingArea {
   width: 100%;
   height: 100%;
 }
@@ -38,8 +38,8 @@ svg.workingArea {
 
 .grid {
   fill: none;
-  shape-rendering: "crispEdges";
-  vector-effect: "non-scaling-stroke";
+  shape-rendering: crispEdges;
+  vector-effect: non-scaling-stroke;
 }
 .grid.on {
   display: inline;
