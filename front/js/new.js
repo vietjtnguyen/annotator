@@ -1,3 +1,23 @@
+// Helpful links:
+// http://stackoverflow.com/questions/16265123/resize-svg-when-window-is-resized-in-d3-js
+// http://stackoverflow.com/questions/6942785/browsers-think-differently-about-window-innerwidth-and-document-documentelement
+// http://bl.ocks.org/mbostock/3892928
+// http://bl.ocks.org/mbostock/6123708
+// http://stackoverflow.com/questions/19075381/d3-mouse-events-click-dragend
+// http://getbootstrap.com/css
+// http://getbootstrap.com/components
+// http://backbonejs.org/#Model
+// http://backbonejs.org/#Collection
+// http://backbonejs.org/#FAQ-nested
+// http://stackoverflow.com/questions/18504235/understand-backbone-js-rest-calls
+// http://jstarrdewar.com/blog/2012/07/20/the-correct-way-to-override-concrete-backbone-methods/
+// https://github.com/mbostock/d3/wiki/Selections#animation--interaction
+//   The `this` context of an event callback in D3 is the DOM element.
+// http://stackoverflow.com/questions/19851171/nested-backbone-model-results-in-infinite-recursion-when-saving
+// http://stackoverflow.com/questions/6535948/nested-models-in-backbone-js-how-to-approach
+
+////////////////////////////////////////////////////////////////////////////////
+
 // This function returns a two element array containing the "window" width and
 // height respectively.
 // <http://stackoverflow.com/questions/16265123/resize-svg-when-window-is-resized-in-d3-js>
@@ -9,6 +29,15 @@ function getWindowSize() {
     return [w.innerWidth || e.clientWidth || g.clientWidth,
             w.innerHeight || e.clientHeight || g.clientHeight];
 }
+
+// Generate a pseudo-GUID by concatenating random hexadecimal.
+// Taken from `backbone.localStorage.js`.
+function S4() {
+   return (((1+Math.random())*0x10000)|0).toString(16).substring(1);
+};
+function guid() {
+   return (S4()+S4()+"-"+S4()+"-"+S4()+"-"+S4()+"-"+S4()+S4()+S4());
+};
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -40,6 +69,24 @@ var PointSetCollection = Backbone.Collection.extend({
     var self = this;
     self.selectedPointSet = null;
   },
+  isSelected: function(model) {
+    var self = this;
+    return model == this.selectedPointSet;
+  },
+  select: function(model) {
+    var self = this;
+    self.selectedPointSet = model || null;
+    self.trigger("select", self.selectedPointSet);
+  },
+  unselect: function() {
+    var self = this;
+    self.selectedPointSet = null;
+    self.trigger("select", self.selectedPointSet);
+  },
+  getSelected: function() {
+    var self = this;
+    return self.selectedPointSet;
+  }
 });
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -48,25 +95,47 @@ var PointSetItemView = Backbone.View.extend({
   template: _.template($("#pointSetItemTemplate").html()),
   tagName: "a",
   events: {
+    "click": "selectItem",
     "click .glyphicon-remove": "removeItem"
   },
   initialize: function() {
     var self = this;
-    self.listenTo(self.collection, "remove", self.what);
+    self.listenTo(self.collection, "remove", self.renderIndex);
+    self.listenTo(self.collection, "select", self.renderSelection);
+    self.listenTo(self.model, "change:points", self.renderIndex);
     self.listenTo(self.model, "destroy", self.remove);
-  },
-  what: function() {
-    var self = this;
-    self.$("#text").html("Line " + self.collection.indexOf(self.model));
-    return self;
   },
   render: function() {
     var self = this;
     self.setElement($(self.template({index: self.collection.indexOf(self.model)}))[0]);
+    self.renderSelection();
     return self;
+  },
+  renderIndex: function() {
+    var self = this;
+    self.$("#text").html("Line " + self.collection.indexOf(self.model) + "(" + _.map(_.range(self.model.get("points").length), function() { return "."; }).join("") + ")");
+    return self;
+  },
+  renderSelection: function(selectedModel) {
+    var self = this;
+    if (self.model == selectedModel) {
+      self.$el.addClass("active");
+    } else {
+      self.$el.removeClass("active");
+    }
+  },
+  selectItem: function() {
+    var self = this;
+    if (self.collection.isSelected(self.model)) {
+      self.collection.unselect();
+    } else {
+      self.collection.select(self.model);
+    }
   },
   removeItem: function() {
     var self = this;
+    // Trigger this event to notify others that removal has started.
+    self.model.trigger("removing");
     // This gets us a nice and smooth removal animation in two steps. First is
     // fades out the element, then it moves the element up using `margin-top`
     // in order to slide all subsequent elements into their new positions.
@@ -111,6 +180,154 @@ var PointSetListingView = Backbone.View.extend({
   addAllItemViews: function() {
     console.log("addAllItemViews");
     var self = this;
+    self.collection.forEach(self.addItemView, self);
+  }
+});
+
+////////////////////////////////////////////////////////////////////////////////
+
+var PointSetWorkingView = Backbone.View.extend({
+  tagName: "g",
+  initialize: function() {
+    var self = this;
+    self.listenTo(self.model, "change:points", self.render);
+    self.listenTo(self.model, "removing", self.startRemoval);
+    self.listenTo(self.model, "destroy", self.remove);
+    self.initialRender();
+    self.delegateD3Events({
+      "dragstart drag": "dotDragStarted",
+      "drag drag": "dotDragged",
+      "dragend drag": "dotDragEnded"
+    });
+    self.render();
+  },
+  initialRender: function() {
+    var self = this;
+    self.setGroup = d3.select("#origin").append("g")
+      .classed("pointSet", true);
+    self.drag = d3.behavior.drag()
+      .origin(function(d) { return d; });
+    self.setElement(self.setGroup.node());
+  },
+  // Set up the D3 events such that the this context of the callback is the
+  // view itself (instead of the DOM element which is the default D3 behavior)
+  // and the DOM element is instead passed as the first argument.  Thus the
+  // callbacks receive three arguments: DOM element, datum, and index. The
+  // trigger name is the name of an attribute on self, which should be a D3
+  // selection or behavior, and the D3 event to bind using the `on` method for
+  // D3 selections and behaviors. The specifications for D3 events is listed in
+  // `d3Events`.
+  delegateD3Events: function(d3Events) {
+    var self = this;
+    d3Events = d3Events || self.d3Events;
+    _.forEach(d3Events, function(callback, trigger) {
+      var triggerArgs = / *(\w+) *(.*)/.exec(trigger);
+      var eventName = triggerArgs[1];
+      var eventTarget = triggerArgs[2];
+      self[eventTarget].on(eventName, function(d, i) { self[callback](this, d, i); });
+    });
+  },
+  startRemoval: function() {
+    var self = this;
+    d3.select(self.el).transition()
+      .duration(250)
+      .style("opacity", 0);
+  },
+  render: function() {
+    var self = this;
+    self.dataSelection = self.setGroup.selectAll("circle")
+      .data(self.model.get("points"), function(d) { return d.id; });
+    self.dataSelection.enter().append("circle")
+      .attr("vector-effect", "non-scaling-stroke")
+      .attr("r", 5)
+      .attr("cx", function(d) { return d.x; })
+      .attr("cy", function(d) { return d.y; })
+      .style({"opacity": 0,
+              "stroke-width": "1.5px",
+              stroke: "#000",
+              "stroke-opacity": 0.1,
+              fill: "#fff",
+              "fill-opacity": 0.1})
+      .on("click", function(d, i) { self.dotClick(this, d, i); })
+      .on("mouseover", function(d, i) {
+        d3.select(this).transition().duration(250)
+          .attr("r", 10)
+          .style("opacity", 1)
+          .style("fill-opacity", 0)
+          .style("stroke", "#f00")
+          .style("stroke-opacity", 1);
+      })
+      .on("mouseout", function(d, i) {
+        d3.select(this).transition().duration(250)
+          .attr("r", 5)
+          .style("opacity", 1)
+          .style("fill-opacity", 0.1)
+          .style("stroke", "#000")
+          .style("stroke-opacity", 0.1);
+      })
+      .call(self.drag)
+      .transition()
+      .duration(250)
+      .style("opacity", 1);
+    self.dataSelection.exit()
+      .on("click", null)
+      .on("mouseover", null)
+      .on("mouseout", null)
+      .transition()
+      .duration(250)
+      .style("opacity", 0)
+      .remove();
+    return self;
+  },
+  dotClick: function(domElement, datum, index) {
+    var self = this;
+    console.log("dotClick");
+    console.log(datum);
+    console.log(index);
+    // <http://stackoverflow.com/questions/19075381/d3-mouse-events-click-dragend> 
+    if (d3.event.defaultPrevented) return;
+    if (d3.event.ctrlKey) {
+      self.model.get("points").remove(datum);
+      self.model.trigger("change:points");
+    }
+  },
+  dotDragStarted: function(domElement, datum, index) {
+    d3.event.sourceEvent.stopPropagation();
+    d3.select(domElement).classed("dragging", true);
+  },
+  dotDragged: function(domElement, datum, index) {
+    var self = this;
+    datum.x = d3.event.x;
+    datum.y = d3.event.y;
+    self.model.trigger("change:points");
+    d3.select(domElement).attr("cx", datum.x).attr("cy", datum.y);
+    // updateLines();
+  },
+  dotDragEnded: function(domElement, datum, index) {
+    console.log("dotDragEnded");
+    console.log(datum);
+    console.log(index);
+    d3.select(domElement).classed("dragging", false);
+    // app.get("currentAnnotation").save();
+    // updateLines();
+  }
+});
+
+var PointSetCollectionWorkingView = Backbone.View.extend({
+  initialize: function() {
+    var self = this;
+    self.listenTo(self.collection, "add", self.addItemView);
+    self.listenTo(self.collection, "reset", self.addAllItemViews);
+  },
+  addItemView: function(newModel) {
+    console.log("workingAdd");
+    var self = this;
+    var newView = new PointSetWorkingView({model: newModel, collection: self.collection});
+    self.$("#origin").append(newView.render().el);
+  },
+  addAllItemViews: function() {
+    console.log("workingAddAll");
+    var self = this;
     self.collection.forEach(self.addItem, self);
   }
 });
@@ -137,6 +354,7 @@ var AppState = Backbone.Model.extend({
     id: 0,
     currentImage: null,
     currentAnnotation: null,
+    currentSet: null,
     background: "light",
     grid: "off",
     zoom: {
@@ -149,26 +367,21 @@ var AppState = Backbone.Model.extend({
 ////////////////////////////////////////////////////////////////////////////////
 
 var WorkingAreaView = Backbone.View.extend({
-  modelEvents: {
-    "change:currentImage": "renderImage",
-    "change:background": "renderBackgroundColor",
-    "change:grid": "renderGridVisibility",
-    "change:zoom": "renderZoom"
-  },
-  d3Events: {
-    "zoom zoom": "zoomed",
-    "zoomend zoom": "zoomend",
-    "click clickRect": "canvasClick"
-  },
   initialize: function() {
     var self = this;
     self.create();
-    self.delegateModelEvents();
-    self.delegateD3Events();
+    self.listenTo(self.model, "change:currentImage", self.renderImage);
+    self.listenTo(self.model, "change:background", self.renderBackgroundColor);
+    self.listenTo(self.model, "change:grid", self.renderGridVisibility);
+    self.listenTo(self.model, "change:zoom", self.renderZoom);
+    self.delegateD3Events({
+      "zoom zoom": "zoomed",
+      "zoomend zoom": "zoomend",
+      "click clickRect": "canvasClick"
+    });
   },
   create: function() {
     var self = this;
-    self.model.listenTo(self, "workingAreaClick", "newPoint");
     // Create the zoom behavior. This object is applied to a D3 selection by
     // "calling it" on a D3 selection. The callback is bound using `d3events`
     // and `delegateD3Events`.
@@ -266,6 +479,14 @@ var WorkingAreaView = Backbone.View.extend({
       grid.classed(i, value == i);
     });
   },
+  // "Renders" the zoom by updating the origin transform.
+  renderZoom: function(model, value, options) {
+    var self = this;
+    self.origin.attr("transform", "translate(" + value.translate.toString() + "), scale(" + value.scale + ")");
+    self.zoom
+      .translate(value.translate)
+      .scale(value.scale);
+  },
   // This is a D3 event hooked into the view using `delegateD3Event`.
   zoomed: function(domElement, datum, index) {
     var self = this;
@@ -278,14 +499,6 @@ var WorkingAreaView = Backbone.View.extend({
   zoomend: function(domElement, datum, index) {
     var self = this;
     self.model.save();
-  },
-  // This is a D3 event hooked into the view using `delegateD3Event`.
-  renderZoom: function(model, value, options) {
-    var self = this;
-    self.origin.attr("transform", "translate(" + value.translate.toString() + "), scale(" + value.scale + ")");
-    self.zoom
-      .translate(value.translate)
-      .scale(value.scale);
   },
   // This is a D3 event hooked into the view using `delegateD3Event`.
   canvasClick: function(domElement, datum, index) {
@@ -376,9 +589,20 @@ appState.pointSets = new PointSetCollection();
 appState.pointSets.listenTo(workingAreaView, "workingAreaClick", function(mousePosition) {
   console.log("pointSet workingAreaClick");
   console.log(mousePosition);
+  var activePointSet = appState.pointSets.getSelected();
+  if (activePointSet) {
+    var point = {
+      x: mousePosition[0],
+      y: mousePosition[1],
+      id: guid()
+    };
+    var points = activePointSet.get("points");
+    activePointSet.set("points", _.union(points, [point]))
+  }
 });
 
 var listingView = new PointSetListingView({collection: appState.pointSets, el: $("#lineControlSection")[0]});
+var workingView = new PointSetCollectionWorkingView({collection: appState.pointSets});
 
 // Grab the application state if it was saved locally.
 appState.fetch({

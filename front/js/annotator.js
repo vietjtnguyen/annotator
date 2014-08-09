@@ -1,21 +1,3 @@
-// Helpful links:
-// http://stackoverflow.com/questions/16265123/resize-svg-when-window-is-resized-in-d3-js
-// http://stackoverflow.com/questions/6942785/browsers-think-differently-about-window-innerwidth-and-document-documentelement
-// http://bl.ocks.org/mbostock/3892928
-// http://bl.ocks.org/mbostock/6123708
-// http://stackoverflow.com/questions/19075381/d3-mouse-events-click-dragend
-// http://getbootstrap.com/css
-// http://getbootstrap.com/components
-// http://backbonejs.org/#Model
-// http://backbonejs.org/#Collection
-// http://backbonejs.org/#FAQ-nested
-// http://stackoverflow.com/questions/18504235/understand-backbone-js-rest-calls
-// http://jstarrdewar.com/blog/2012/07/20/the-correct-way-to-override-concrete-backbone-methods/
-// https://github.com/mbostock/d3/wiki/Selections#animation--interaction
-//   The `this` context of an event callback in D3 is the DOM element.
-// http://stackoverflow.com/questions/19851171/nested-backbone-model-results-in-infinite-recursion-when-saving
-// http://stackoverflow.com/questions/6535948/nested-models-in-backbone-js-how-to-approach
-
 var currentImage = new Image({
   id: "2008_000003",
   width: 500,
