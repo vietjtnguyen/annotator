@@ -94,6 +94,9 @@ body.dark {
   stroke-linecap: butt;
   stroke-linejoin: round;
   opacity: 1;
+  /* This is to allow hover selection on the thicker background line without
+   * the thinner foreground line getting in the way. */
+  pointer-events: none;
 }
 
 .polygonBg.selected {
@@ -101,6 +104,9 @@ body.dark {
 }
 
 .polygonFg.selected {
-  stroke: #00f;
   stroke-width: 2px;
+}
+
+.polygonBg.hover {
+  stroke-width: 8px;
 }

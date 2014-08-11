@@ -12,6 +12,7 @@
   <meta charset="utf-8">
   <title>Annotator</title>
   <link rel="stylesheet" type="text/css" href="css/external/bootstrap.css">
+  <link rel="stylesheet" type="text/css" href="css/external/bootstrap-colorpicker.css"/>
   <link rel="stylesheet" type="text/css" href="css/annotator.css"/>
 </head>
 
@@ -31,6 +32,9 @@
     <p>
       <button id="undoButton" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-chevron-left"></span> Undo</button>
       <button id="redoButton" class="btn btn-default btn-xs">Redo <span class="glyphicon glyphicon-chevron-right"></span></button>
+    </p>
+    <p>
+      <button id="changeLineColorButton" class="btn btn-default btn-xs btn-block" data-color="rgb(0, 0, 0)"><span class="glyphicon glyphicon-tint"></span> Line Color</button>
     </p>
   </div>
 
@@ -53,8 +57,18 @@
       <h3>Lines</h3>
       <p>
         <button id="addLineButton" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-plus"></span> Add Line</button>
+        <button id="toggleLinesButton" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-sort"></span></button>
       </p>
       <div id="lineListing" class="list-group">
+      </div>
+    </div>
+    <div id="groupControlSection">
+      <h3>Groups</h3>
+      <p>
+        <button id="addGroupButton" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-plus"></span> Add Group</button>
+        <button id="toggleGroupButton" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-sort"></span></button>
+      </p>
+      <div id="groupListing" class="list-group">
       </div>
     </div>
   </div>
@@ -64,6 +78,7 @@
       <g id="gridLines"></g>
       <image width="0" height="0" href=""></image>
     </g>
+    <path id="svgPlus" d="M0,-4 V4 M-4,0 H4" stroke="#000" style="display: none;"/>
   </svg>
 
   <script type="text/template" id="pointSetItemTemplate">
@@ -73,6 +88,7 @@
   <script type="text/javascript" src="js/external/jquery-1.11.1.js"></script>
   <script type="text/javascript" src="js/external/jquery-ui.js"></script>
   <script type="text/javascript" src="js/external/bootstrap.js"></script>
+  <script type="text/javascript" src="js/external/bootstrap-colorpicker.js"></script>
   <script type="text/javascript" src="js/external/d3.js"></script>
   <script type="text/javascript" src="js/external/underscore.js"></script>
   <script type="text/javascript" src="js/external/backbone.js"></script>
@@ -83,8 +99,28 @@
   <script type="text/javascript" src="js/views.js"></script>
   <script type="text/javascript" src="js/annotator.js"></script>
   -->
+  <script type="text/javascript" src="js/util.js"></script>
+  <script type="text/javascript" src="js/point.js"></script>
+  <script type="text/javascript" src="js/pointSet.js"></script>
+  <script type="text/javascript" src="js/pointSetCollection.js"></script>
+  <script type="text/javascript" src="js/pointSetListItemView.js"></script>
+  <script type="text/javascript" src="js/pointSetListView.js"></script>
+  <script type="text/javascript" src="js/pointSetRepresentationView.js"></script>
+  <script type="text/javascript" src="js/image.js"></script>
+  <script type="text/javascript" src="js/workingAreaView.js"></script>
   <script type="text/javascript" src="js/utilityBoxView.js"></script>
   <script type="text/javascript" src="js/new.js"></script>
+
+  <script type="text/javascript">
+    $(function() {
+      $("#toggleLinesButton").click(function() {
+        $("#lineListing").toggle("blind");
+      });
+      $("#toggleGroupsButton").click(function() {
+        $("#groupListing").toggle("blind");
+      });
+    });
+  </script>
 
 </body>
 

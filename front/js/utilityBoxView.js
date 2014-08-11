@@ -8,6 +8,20 @@ var UtilityBoxView = Backbone.View.extend({
     "click #toggleGridButton": "toggleGrid",
   },
 
+  initialize: function() {
+    var self = this;
+    self.listenTo(self.model, "change:lineColor", self.renderLineColor);
+    self.$("#changeLineColorButton").colorpicker()
+      .on("changeColor", function(e) {
+        self.model.set("lineColor", e.color.toHex());
+      });
+  },
+
+  renderLineColor: function() {
+    var self = this;
+    self.$("#changeLineColorButton>span").css("color", self.model.get("lineColor"));
+  },
+
   resetView: function() {
     var self = this;
     // Create a D3 transition, not associated with any selection, set its
