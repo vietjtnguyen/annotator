@@ -26,6 +26,14 @@
 // http://api.jquery.com/css/
 // http://stackoverflow.com/questions/4633125/is-it-possible-to-get-all-arguments-of-a-function-as-single-object-inside-that-f
 
+/*
+ * Should objects trigger events on other objects or should they trigger events
+ * on themselves that others must listen to? In order words, should an object
+ * touch another object to notify them or should an object listen to another
+ * object to get notifications?
+ */
+
+////////////////////////////////////////////////////////////////////////////////
 // This model represents the application state and doubly serves as the root
 // namespace for the application in the sense that point sets, views, and more
 // are attached to this model, but not as attributes.
@@ -74,8 +82,8 @@ appState.groups = new GroupCollection();
 // Create views
 appState.workingAreaView = new WorkingAreaView({model: appState, collection: appState.pointSets, el: $("body")[0]});
 appState.utilityBoxView = new UtilityBoxView({model: appState, el: $("#utilityBox")[0]});
-appState.setListingView = new PointSetListView({collection: appState.pointSets, el: $("#lineControlSection")[0]});
-appState.groupListingView = new GroupListView({collection: appState.groups, el: $("#groupControlSection")[0]});
+appState.setListingView = new PointSetListView({collection: appState.pointSets, el: $("#pointSetSection")[0]});
+appState.groupListingView = new GroupListView({collection: appState.groups, el: $("#groupSection")[0]});
 
 ////////////////////////////////////////////////////////////////////////////////
 // Establish cross event hooks after all instances have been created
@@ -143,7 +151,7 @@ appState.fetch({
   }
 });
 
-appState.pointSets.localStorage = new Backbone.LocalStorage("com.vietjtnguyen.annotator.Line"),
+appState.pointSets.localStorage = new Backbone.LocalStorage("com.vietjtnguyen.annotator.Line");
 appState.pointSets.fetch({
   success: function() { console.log("points fetched"); },
   error: function() { console.log("error fetching points"); }

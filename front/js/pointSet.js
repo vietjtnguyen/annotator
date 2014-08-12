@@ -7,7 +7,8 @@ var PointSet = Backbone.Model.extend({
 
   // Make sure that the point set starts off with an empty array of points.
   defaults: {
-    points: []
+    points: [],
+    group: null
   },
 
   parse: function(response) {

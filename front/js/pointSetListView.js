@@ -1,7 +1,7 @@
 var PointSetListView = Backbone.View.extend({
 
   events: {
-    "click #addLineButton": "addItem"
+    "click #addPointSetButton": "addItem"
   },
 
   initialize: function() {

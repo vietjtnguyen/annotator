@@ -46,16 +46,16 @@
         </span>
       </p>
     </div>
-    <div id="lineControlSection">
+    <div id="pointSetSection">
       <h3>Lines</h3>
       <p>
-        <button id="addLineButton" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-plus"></span> Add Line</button>
-        <button id="toggleLinesButton" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-sort"></span></button>
+        <button id="addPointSetButton" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-plus"></span> Add Line</button>
+        <button id="togglePointSetsButton" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-sort"></span></button>
       </p>
       <div id="lineListing" class="list-group">
       </div>
     </div>
-    <div id="groupControlSection">
+    <div id="groupSection">
       <h3>Groups</h3>
       <p>
         <button id="addGroupButton" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-plus"></span> Add Group</button>
@@ -66,6 +66,10 @@
     </div>
   </div>
 
+  <div class="alert alert-info" role="alert" style="position: absolute; width: 50%; margin-left: -25%; left: 50%; top: 10px;">
+    Click anywhere to add a point.
+  </div>
+
   <svg id="workingArea">
     <g id="origin" transform="translate(0, 0), scale(1)">
       <g id="gridLines"></g>
@@ -74,12 +78,12 @@
     <path id="svgPlus" d="M0,-4 V4 M-4,0 H4" stroke="#000" style="display: none;"/>
   </svg>
 
-  <script type="text/template" id="polyItemTemplate">
-    <a class="list-group-item" style="padding: 4px; padding-left: 7px;" id="lineItem<%= index %>" href="#"><span id="text">Line <%= index %> </span><span class="pull-right"><small><button class="btn btn-xs btn-danger glyphicon glyphicon-remove" style="margin-top: -5px"></button></small></span></a>
+  <script type="text/template" id="pointSetItemTemplate">
+    <a class="list-group-item" style="padding: 4px; padding-left: 7px;" id="pointSetItem<%= index %>" href="#"><span id="text">Line <%= index %> </span><span class="pull-right"><small><button class="btn btn-xs btn-danger glyphicon glyphicon-remove" style="margin-top: -5px"></button></small></span></a>
   </script>
 
   <script type="text/template" id="groupItemTemplate">
-    <a class="list-group-item portlet" style="padding: 4px; padding-left: 7px;" id="lineItem<%= index %>" href="#"><span id="text">Line <%= index %> </span><span class="pull-right"><small><button class="btn btn-xs btn-danger glyphicon glyphicon-remove" style="margin-top: -5px"></button></small></span></a>
+    <a class="list-group-item portlet" style="padding: 4px; padding-left: 7px;" id="groupItem<%= index %>" href="#"><span id="text">Group <%= index %> </span><span class="pull-right"><small><button class="btn btn-xs btn-danger glyphicon glyphicon-remove" style="margin-top: -5px"></button></small></span></a>
   </script>
 
   <script type="text/javascript" src="js/external/jquery-1.11.1.js"></script>
@@ -119,7 +123,7 @@
 
   <script type="text/javascript">
     $(function() {
-      $("#toggleLinesButton").click(function() {
+      $("#togglePointSetsButton").click(function() {
         $("#lineListing").toggle("blind");
       });
       $("#toggleGroupsButton").click(function() {

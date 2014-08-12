@@ -1,6 +1,6 @@
 var PointSetListItemView = Backbone.View.extend({
 
-  template: _.template($("#polyItemTemplate").html()),
+  template: _.template($("#pointSetItemTemplate").html()),
 
   tagName: "a",
 
@@ -11,20 +11,11 @@ var PointSetListItemView = Backbone.View.extend({
     "mouseout": "forceMouseOut"
   },
 
-  forceMouseOver: function() {
-    var self = this;
-    self.model.trigger("listItemMouseOver");
-  },
-
-  forceMouseOut: function() {
-    var self = this;
-    self.model.trigger("listItemMouseOut");
-  },
-
   initialize: function() {
     var self = this;
     self.listenTo(self.collection, "remove", self.renderIndex);
     self.listenTo(self.collection, "select", self.renderSelection);
+    self.listenTo(appState.groups, "select", self.renderSelection);
     self.listenTo(self.model, "change:points", self.renderIndex);
     self.listenTo(self.model, "destroy", self.remove);
   },
@@ -45,19 +36,39 @@ var PointSetListItemView = Backbone.View.extend({
 
   renderSelection: function(selectedModel) {
     var self = this;
-    if (self.model == selectedModel) {
-      self.$el.addClass("active");
+    var selectedGroup = appState.groups.getSelected();
+    if (selectedGroup) {
+      if (self.model.get("group") == selectedGroup.get("id")) {
+        self.$el.addClass("active");
+      } else {
+        self.$el.removeClass("active");
+      }
     } else {
-      self.$el.removeClass("active");
+      if (self.model == selectedModel) {
+        self.$el.addClass("active");
+      } else {
+        self.$el.removeClass("active");
+      }
     }
   },
 
   selectItem: function() {
     var self = this;
-    if (self.collection.isSelected(self.model)) {
-      self.collection.unselect();
+    var selectedGroup = appState.groups.getSelected();
+    if (selectedGroup) {
+      if (self.model.get("group") == selectedGroup.get("id")) {
+        self.model.set("group", "");
+      } else {
+        self.model.set("group", selectedGroup.get("id"));
+      }
+      self.model.save();
+      self.renderSelection();
     } else {
-      self.collection.select(self.model);
+      if (self.collection.isSelected(self.model)) {
+        self.collection.unselect();
+      } else {
+        self.collection.select(self.model);
+      }
     }
   },
 
@@ -83,6 +94,16 @@ var PointSetListItemView = Backbone.View.extend({
             self.model.destroy();
           });
       });
+  },
+
+  forceMouseOver: function() {
+    var self = this;
+    self.model.trigger("listItemMouseOver");
+  },
+
+  forceMouseOut: function() {
+    var self = this;
+    self.model.trigger("listItemMouseOut");
   }
 
 });
