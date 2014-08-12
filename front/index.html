@@ -81,8 +81,12 @@
     <path id="svgPlus" d="M0,-4 V4 M-4,0 H4" stroke="#000" style="display: none;"/>
   </svg>
 
-  <script type="text/template" id="pointSetItemTemplate">
+  <script type="text/template" id="polyItemTemplate">
     <a class="list-group-item" style="padding: 4px; padding-left: 7px;" id="lineItem<%= index %>" href="#"><span id="text">Line <%= index %> </span><span class="pull-right"><small><button class="btn btn-xs btn-danger glyphicon glyphicon-remove" style="margin-top: -5px"></button></small></span></a>
+  </script>
+
+  <script type="text/template" id="groupItemTemplate">
+    <a class="list-group-item portlet" style="padding: 4px; padding-left: 7px;" id="lineItem<%= index %>" href="#"><span id="text">Line <%= index %> </span><span class="pull-right"><small><button class="btn btn-xs btn-danger glyphicon glyphicon-remove" style="margin-top: -5px"></button></small></span></a>
   </script>
 
   <script type="text/javascript" src="js/external/jquery-1.11.1.js"></script>
@@ -100,16 +104,25 @@
   <script type="text/javascript" src="js/annotator.js"></script>
   -->
   <script type="text/javascript" src="js/util.js"></script>
+
   <script type="text/javascript" src="js/point.js"></script>
+  <script type="text/javascript" src="js/image.js"></script>
+
   <script type="text/javascript" src="js/pointSet.js"></script>
   <script type="text/javascript" src="js/pointSetCollection.js"></script>
   <script type="text/javascript" src="js/pointSetListItemView.js"></script>
   <script type="text/javascript" src="js/pointSetListView.js"></script>
   <script type="text/javascript" src="js/pointSetRepresentationView.js"></script>
-  <script type="text/javascript" src="js/image.js"></script>
+
+  <script type="text/javascript" src="js/group.js"></script>
+  <script type="text/javascript" src="js/groupCollection.js"></script>
+  <script type="text/javascript" src="js/groupListItemView.js"></script>
+  <script type="text/javascript" src="js/groupListView.js"></script>
+
   <script type="text/javascript" src="js/workingAreaView.js"></script>
   <script type="text/javascript" src="js/utilityBoxView.js"></script>
-  <script type="text/javascript" src="js/new.js"></script>
+
+  <script type="text/javascript" src="js/annotator.js"></script>
 
   <script type="text/javascript">
     $(function() {

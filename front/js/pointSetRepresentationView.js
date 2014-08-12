@@ -14,7 +14,8 @@ var PointSetRepresentationView = Backbone.View.extend({
     self.delegateD3Events({
       "dragstart drag": "dotDragStarted",
       "drag drag": "dotDragged",
-      "dragend drag": "dotDragEnded"
+      "dragend drag": "dotDragEnded",
+      "click bgPolySelection": "polyClick"
     });
     self.render();
   },
@@ -42,6 +43,8 @@ var PointSetRepresentationView = Backbone.View.extend({
           .classed("hover", false);
       });
     self.fgPolySelection = self.polySelection.data(["fg"], function(d, i) { return d; });
+
+    self.renderLineColor()
   },
 
   // Set up the D3 events such that the this context of the callback is the
@@ -122,12 +125,13 @@ var PointSetRepresentationView = Backbone.View.extend({
       .style("opacity", 0)
       .remove();
     self.polySelection.attr("points", self.model.toSvgCoords());
+
     return self;
   },
 
-  renderLineColor: function(color) {
+  renderLineColor: function() {
     var self = this;
-    self.fgPolySelection.style("stroke", color);
+    self.fgPolySelection.style("stroke", appState.get("lineColor"));
   },
 
   renderSelection: function() {
@@ -140,6 +144,11 @@ var PointSetRepresentationView = Backbone.View.extend({
     var self = this;
     self.polySelection.classed("selected", false);
     self.fgPolySelection.style("stroke", appState.get("lineColor"));
+  },
+
+  polyClick: function() {
+    var self = this;
+    self.collection.select(self.model);
   },
 
   dotClick: function(domElement, datum, index) {

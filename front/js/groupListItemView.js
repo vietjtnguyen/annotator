@@ -1,6 +1,6 @@
-var PointSetListItemView = Backbone.View.extend({
+var GroupListItemView = Backbone.View.extend({
 
-  template: _.template($("#polyItemTemplate").html()),
+  template: _.template($("#groupItemTemplate").html()),
 
   tagName: "a",
 
@@ -27,7 +27,7 @@ var PointSetListItemView = Backbone.View.extend({
 
   renderIndex: function() {
     var self = this;
-    self.$("#text").html("Line " + self.collection.indexOf(self.model) + " " + _.map(_.range(self.model.get("points").length), function() { return "&bull;"; }).join(""));
+    self.$("#text").html("Group " + self.collection.indexOf(self.model));
     return self;
   },
 

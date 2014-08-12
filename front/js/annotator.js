@@ -61,17 +61,16 @@ var AppState = Backbone.Model.extend({
 
 var appState = new AppState();
 
-// Attach the current image model to the application state but not as a model
-// attribute.
+// TODO: Might as well move these into the AppState initializer.
 appState.currentImage = new Image();
-
-// Attach the point set to the application state but not as a model attribute.
 appState.pointSets = new PointSetCollection({model: Line});
+appState.groups = new GroupCollection();
 
 // Create views
 appState.workingAreaView = new WorkingAreaView({model: appState, collection: appState.pointSets, el: $("body")[0]});
 appState.utilityBoxView = new UtilityBoxView({model: appState, el: $("#utilityBox")[0]});
-appState.listingView = new PointSetListView({collection: appState.pointSets, el: $("#lineControlSection")[0]});
+appState.setListingView = new PointSetListView({collection: appState.pointSets, el: $("#lineControlSection")[0]});
+appState.groupListingView = new GroupListView({collection: appState.groups, el: $("#groupControlSection")[0]});
 
 ////////////////////////////////////////////////////////////////////////////////
 // Establish event hooks after all instances have been created
@@ -98,7 +97,7 @@ appState.pointSets.listenTo(appState.workingAreaView, "workingAreaClick", functi
   console.log(mousePosition);
   var activePointSet = appState.pointSets.getSelected();
   if (!activePointSet || activePointSet.isFull()) {
-    activePointSet = new appState.pointSets.model()
+    activePointSet = new appState.pointSets.model();
     appState.pointSets.add(activePointSet);
     appState.pointSets.select(activePointSet );
   }
@@ -109,7 +108,7 @@ appState.pointSets.listenTo(appState.workingAreaView, "workingAreaClick", functi
       y: mousePosition[1]
     });
     var points = activePointSet.get("points");
-    activePointSet.set("points", _.union(points, [point]))
+    activePointSet.set("points", _.union(points, [point]));
     activePointSet.save();
   }
 });
@@ -143,5 +142,10 @@ appState.pointSets.localStorage = new Backbone.LocalStorage("com.vietjtnguyen.an
 appState.pointSets.fetch({
   success: function() { console.log("points fetched"); },
   error: function() { console.log("error fetching points"); }
+});
+
+appState.groups.fetch({
+  success: function() { console.log("groups fetched"); },
+  error: function() { console.log("error fetching groups"); }
 });
 

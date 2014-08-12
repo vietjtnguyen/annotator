@@ -100,7 +100,7 @@ body.dark {
 }
 
 .polygonBg.selected {
-  stroke-width: 4px;
+  stroke-width: 8px;
 }
 
 .polygonFg.selected {

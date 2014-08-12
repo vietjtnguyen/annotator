@@ -11,22 +11,19 @@ var PointSetListView = Backbone.View.extend({
   },
 
   addItem: function() {
-    console.log("addItem");
     var self = this;
-    var newPointSet = new self.collection.model()
-    self.collection.add(newPointSet);
-    self.collection.select(newPointSet);
+    var newModel = new self.collection.model();
+    self.collection.add(newModel);
+    self.collection.select(newModel);
   },
 
   addItemView: function(newModel) {
-    console.log("addItemView");
     var self = this;
     var newView = new PointSetListItemView({model: newModel, collection: self.collection});
     self.$("#lineListing").append(newView.render().el);
   },
 
   addAllItemViews: function() {
-    console.log("addAllItemViews");
     var self = this;
     self.collection.forEach(self.addItemView, self);
   }

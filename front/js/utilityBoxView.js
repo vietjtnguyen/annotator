@@ -14,6 +14,7 @@ var UtilityBoxView = Backbone.View.extend({
     self.$("#changeLineColorButton").colorpicker()
       .on("changeColor", function(e) {
         self.model.set("lineColor", e.color.toHex());
+        self.model.save();
       });
   },
 
