@@ -1,4 +1,9 @@
 // Helpful links:
+// http://stackoverflow.com/questions/9735513/how-to-place-a-div-on-the-right-side-with-absolute-position
+// http://stackoverflow.com/questions/2469529/how-to-disable-scrolling-the-document-body
+// http://css3gen.com/box-shadow/
+// http://math.stackexchange.com/questions/296794/finding-the-transform-matrix-from-4-projected-points-with-javascript
+// http://www.w3.org/TR/css3-transforms/#transform-functions
 // http://stackoverflow.com/questions/16265123/resize-svg-when-window-is-resized-in-d3-js
 // http://stackoverflow.com/questions/6942785/browsers-think-differently-about-window-innerwidth-and-document-documentelement
 // http://bl.ocks.org/mbostock/3892928
@@ -73,7 +78,7 @@ appState.setListingView = new PointSetListView({collection: appState.pointSets, 
 appState.groupListingView = new GroupListView({collection: appState.groups, el: $("#groupControlSection")[0]});
 
 ////////////////////////////////////////////////////////////////////////////////
-// Establish event hooks after all instances have been created
+// Establish cross event hooks after all instances have been created
 
 // We want to the current image *model* to listen to changes in the
 // `currentImage` attribute on the application state so that the current image

@@ -6,7 +6,19 @@ var PointSetListItemView = Backbone.View.extend({
 
   events: {
     "click": "selectItem",
-    "click .glyphicon-remove": "removeItem"
+    "click .glyphicon-remove": "removeItem",
+    "mouseover": "forceMouseOver",
+    "mouseout": "forceMouseOut"
+  },
+
+  forceMouseOver: function() {
+    var self = this;
+    self.model.trigger("listItemMouseOver");
+  },
+
+  forceMouseOut: function() {
+    var self = this;
+    self.model.trigger("listItemMouseOut");
   },
 
   initialize: function() {

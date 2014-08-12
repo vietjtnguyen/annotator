@@ -6,6 +6,8 @@ var PointSetRepresentationView = Backbone.View.extend({
     var self = this;
     self.listenTo(self.model, "change:points", self.render);
     self.listenTo(self.model, "changeLineColor", self.renderLineColor);
+    self.listenTo(self.model, "listItemMouseOver", self.forceMouseOver);
+    self.listenTo(self.model, "listItemMouseOut", self.forceMouseOut);
     self.listenTo(self.model, "select", self.renderSelection);
     self.listenTo(self.model, "unselect", self.renderUnselection);
     self.listenTo(self.model, "removing", self.startRemoval);
@@ -44,7 +46,19 @@ var PointSetRepresentationView = Backbone.View.extend({
       });
     self.fgPolySelection = self.polySelection.data(["fg"], function(d, i) { return d; });
 
-    self.renderLineColor()
+    self.renderLineColor();
+  },
+
+  forceMouseOver: function() {
+    var self = this;
+    self.polySelection
+      .classed("hover", true);
+  },
+
+  forceMouseOut: function() {
+    var self = this;
+    self.polySelection
+      .classed("hover", false);
   },
 
   // Set up the D3 events such that the this context of the callback is the

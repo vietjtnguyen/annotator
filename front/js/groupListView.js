@@ -8,8 +8,6 @@ var GroupListView = Backbone.View.extend({
     var self = this;
     self.listenTo(self.collection, "add", self.addItemView);
     self.listenTo(self.collection, "reset", self.addAllItemViews);
-    self.$("#groupListing").sortable();
-    self.$("#groupListing").disableSelection();
   },
 
   addItem: function() {
