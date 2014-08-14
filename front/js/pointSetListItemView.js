@@ -1,81 +1,98 @@
 var PointSetListItemView = Backbone.View.extend({
 
-  template: _.template($("#pointSetItemTemplate").html()),
+  template: _.template($("#listItemTemplate").html()),
 
   tagName: "a",
 
   events: {
-    "click": "selectItem",
-    "click .glyphicon-remove": "removeItem",
-    "mouseover": "forceMouseOver",
-    "mouseout": "forceMouseOut"
+    "click": "selectSelf",
+    "click .glyphicon-remove": "startPrettyRemoval",
+    "mouseover": "broadcastMouseOver",
+    "mouseout": "broadcastMouseOut"
   },
 
-  initialize: function() {
+  initialize: function(options) {
     var self = this;
-    self.listenTo(self.collection, "remove", self.renderIndex);
-    self.listenTo(self.collection, "select", self.renderSelection);
-    self.listenTo(appState.groups, "select", self.renderSelection);
-    self.listenTo(self.model, "change:points", self.renderIndex);
+    self.appState = options.appState || self.appState;
+
+    // If the model gets or changes its ID then update the ID of the DOM
+    // element.
+    self.listenTo(self.model, "change:id", self.renderId);
+
+    // If the point set's points change then rerender the item text to update
+    // the number of bullet points.
+    self.listenTo(self.model, "change:points", self.render);
+
+    // If the model changes its group membership then rerender the selection
+    // visual in case we are in group membership mode.
+    self.listenTo(self.model, "change:group", self.renderSelection);
+    
+    // If the model gets destroyed then remove the list item (self.remove is a
+    // Backbone method).
     self.listenTo(self.model, "destroy", self.remove);
+
+    // If the selected point set changes then rerender the selection visual.
+    self.listenTo(self.appState, "change:selectedPointSetId", self.renderSelection);
+
+    // If the selected group changes then rerender the selection visual because
+    // we might have changed to in/out of group membership mode.
+    self.listenTo(self.appState, "change:selectedGroupId", self.renderSelection);
+
+    // If the point set collection changes via removal then we'll need to
+    // update the visual index in the list. This index has no functional
+    // purpose. We don't respond to add events because adds are always appended
+    // to the end and don't affect existing indices.
+    self.listenTo(self.appState.pointSets, "remove", self.renderItemText);
+  },
+
+  // Create the element from an underscore template and then set the Backbone
+  // view's element to it.
+  createDomElement: function() {
+    var self = this;
+    self.setElement($(self.template(self.model.attributes))[0]);
+    self.render();
+    return self.el;
   },
 
   render: function() {
     var self = this;
-    self.setElement($(self.template({index: self.collection.indexOf(self.model)}))[0]);
-    self.renderIndex();
+    self.renderId();
+    self.renderText();
     self.renderSelection();
     return self;
   },
 
-  renderIndex: function() {
+  renderId: function() {
     var self = this;
-    self.$("#text").html("Line " + self.collection.indexOf(self.model) + " " + _.map(_.range(self.model.get("points").length), function() { return "&bull;"; }).join(""));
-    return self;
+    self.$el.attr("id", self.model.get("id"));
+  },
+
+  renderText: function() {
+    var self = this;
+    var index = self.appState.pointSets.indexOf(self.model);
+    var bullets = _.map(_.range(self.model.get("points").length), function() { return "&bull;"; }).join("");
+    self.$("#text").html("Line " + index + " " + bullets);
   },
 
   renderSelection: function(selectedModel) {
     var self = this;
-    var selectedGroup = appState.groups.getSelected();
-    if (selectedGroup) {
-      if (self.model.get("group") == selectedGroup.get("id")) {
-        self.$el.addClass("active");
-      } else {
-        self.$el.removeClass("active");
-      }
+    if ( (self.appState.isInGroupMembershipMode() && self.model.get("group") === self.appState.get("selectedGroupId")) ||
+         (!self.appState.isInGroupMembershipMode() && self.model.get("id") === self.appState.get("selectedPointSetId")) ) {
+      self.$el.addClass("active");
     } else {
-      if (self.model == selectedModel) {
-        self.$el.addClass("active");
-      } else {
-        self.$el.removeClass("active");
-      }
+      self.$el.removeClass("active");
     }
   },
 
-  selectItem: function() {
+  selectSelf: function(jQueryEvent) {
     var self = this;
-    var selectedGroup = appState.groups.getSelected();
-    if (selectedGroup) {
-      if (self.model.get("group") == selectedGroup.get("id")) {
-        self.model.set("group", "");
-      } else {
-        self.model.set("group", selectedGroup.get("id"));
-      }
-      self.model.save();
-      self.renderSelection();
-    } else {
-      if (self.collection.isSelected(self.model)) {
-        self.collection.unselect();
-      } else {
-        self.collection.select(self.model);
-      }
-    }
+    self.model.selectSelf();
   },
 
-  removeItem: function() {
+  startPrettyRemoval: function() {
     var self = this;
     // Trigger this event to notify others that removal has started.
-    self.model.trigger("removing");
+    self.model.trigger("startingRemoval");
     // This gets us a nice and smooth removal animation in two steps. First is
     // fades out the element, then it moves the element up using `margin-top`
     // in order to slide all subsequent elements into their new positions.
@@ -96,14 +113,14 @@ var PointSetListItemView = Backbone.View.extend({
       });
   },
 
-  forceMouseOver: function() {
+  broadcastMouseOver: function() {
     var self = this;
-    self.model.trigger("listItemMouseOver");
+    self.model.trigger("mouseOver");
   },
 
-  forceMouseOut: function() {
+  broadcastMouseOut: function() {
     var self = this;
-    self.model.trigger("listItemMouseOut");
+    self.model.trigger("mouseOut");
   }
 
 });

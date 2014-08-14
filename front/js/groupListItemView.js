@@ -1,58 +1,83 @@
 var GroupListItemView = Backbone.View.extend({
 
-  template: _.template($("#groupItemTemplate").html()),
+  template: _.template($("#listItemTemplate").html()),
 
   tagName: "a",
 
   events: {
-    "click": "selectItem",
-    "click .glyphicon-remove": "removeItem"
+    "click": "selectSelf",
+    "click .glyphicon-remove": "startPrettyRemoval"
   },
 
-  initialize: function() {
+  initialize: function(options) {
     var self = this;
-    self.listenTo(self.collection, "remove", self.renderIndex);
-    self.listenTo(self.collection, "select", self.renderSelection);
-    self.listenTo(self.model, "change:points", self.renderIndex);
+    self.appState = options.appState || self.appState;
+
+    // If the model gets or changes its ID then update the ID of the DOM
+    // element.
+    self.listenTo(self.model, "change:id", self.renderId);
+
+    // If the model gets destroyed then remove the list item (self.remove is a
+    // Backbone method).
     self.listenTo(self.model, "destroy", self.remove);
+
+    // If the selected group changes then rerender the selection visual.
+    self.listenTo(self.appState, "change:selectedGroupId", self.renderSelection);
+
+    // If the point set collection changes via removal then we'll need to
+    // update the visual index in the list. This index has no functional
+    // purpose. We don't respond to add events because adds are always appended
+    // to the end and don't affect existing indices.
+    self.listenTo(self.appState.groups, "remove", self.renderText);
+  },
+
+  // Create the element from an underscore template and then set the Backbone
+  // view's element to it.
+  createDomElement: function() {
+    var self = this;
+    self.setElement($(self.template(self.model.attributes))[0]);
+    self.render();
+    return self.el;
   },
 
   render: function() {
     var self = this;
-    self.setElement($(self.template({index: self.collection.indexOf(self.model)}))[0]);
-    self.renderIndex();
+    self.renderId();
+    self.renderText();
     self.renderSelection();
     return self;
   },
 
-  renderIndex: function() {
+  renderId: function() {
     var self = this;
-    self.$("#text").html("Group " + self.collection.indexOf(self.model));
-    return self;
+    self.$el.attr("id", self.model.get("id"));
   },
 
-  renderSelection: function(selectedModel) {
+  renderText: function() {
     var self = this;
-    if (self.model == selectedModel) {
+    var index = self.appState.groups.indexOf(self.model);
+    self.$("#text").html("Group " + index);
+  },
+
+  renderSelection: function() {
+    var self = this;
+    if (self.model.get("id") === self.appState.get("selectedGroupId")) {
       self.$el.addClass("active");
     } else {
       self.$el.removeClass("active");
     }
   },
 
-  selectItem: function() {
+  selectSelf: function() {
     var self = this;
-    if (self.collection.isSelected(self.model)) {
-      self.collection.unselect();
-    } else {
-      self.collection.select(self.model);
-    }
+    self.appState.set("selectedGroupId", self.appState.get("selectedGroupId") === self.model.get("id") ? "" : self.model.get("id"));
+    self.appState.save();
   },
 
-  removeItem: function() {
+  startPrettyRemoval: function() {
     var self = this;
     // Trigger this event to notify others that removal has started.
-    self.model.trigger("removing");
+    self.model.trigger("startingRemoval");
     // This gets us a nice and smooth removal animation in two steps. First is
     // fades out the element, then it moves the element up using `margin-top`
     // in order to slide all subsequent elements into their new positions.

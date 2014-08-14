@@ -45,7 +45,8 @@ var AppState = Backbone.Model.extend({
     id: 0,
     currentImage: null,
     currentAnnotation: null,
-    currentSet: null,
+    selectedPointSetId: "",
+    selectedGroupId: "",
     background: "light",
     grid: "off",
     lineColor: "#000",
@@ -55,17 +56,10 @@ var AppState = Backbone.Model.extend({
     }
   },
 
-  initialize: function() {
+  isInGroupMembershipMode: function() {
     var self = this;
-    self.on("change:lineColor", self.changeLineColor);
+    return self.get("selectedGroupId") !== "";
   },
-
-  changeLineColor: function(model, color) {
-    var self = this;
-    self.pointSets.forEach(function(i) {
-      i.trigger("changeLineColor", color);
-    });
-  }
 
 });
 
@@ -76,14 +70,14 @@ var appState = new AppState();
 
 // TODO: Might as well move these into the AppState initializer.
 appState.currentImage = new Image();
-appState.pointSets = new PointSetCollection({model: Line});
-appState.groups = new GroupCollection();
+appState.pointSets = new PointSetCollection({model: Line}, {appState: appState});
+appState.groups = new GroupCollection({}, {appState: appState});
 
 // Create views
-appState.workingAreaView = new WorkingAreaView({model: appState, collection: appState.pointSets, el: $("body")[0]});
-appState.utilityBoxView = new UtilityBoxView({model: appState, el: $("#utilityBox")[0]});
-appState.setListingView = new PointSetListView({collection: appState.pointSets, el: $("#pointSetSection")[0]});
-appState.groupListingView = new GroupListView({collection: appState.groups, el: $("#groupSection")[0]});
+appState.workingAreaView = new WorkingAreaView({appState: appState, el: $("body")[0]});
+appState.utilityBoxView = new UtilityBoxView({appState: appState, el: $("#utilityBox")[0]});
+appState.setListingView = new PointSetListView({appState: appState, el: $("#pointSetSection")[0]});
+appState.groupListingView = new GroupListView({appState: appState, el: $("#groupSection")[0]});
 
 ////////////////////////////////////////////////////////////////////////////////
 // Establish cross event hooks after all instances have been created
@@ -108,11 +102,10 @@ appState.currentImage.listenTo(appState, "change:currentImage", function() {
 appState.pointSets.listenTo(appState.workingAreaView, "workingAreaClick", function(mousePosition) {
   console.log("pointSet workingAreaClick");
   console.log(mousePosition);
-  var activePointSet = appState.pointSets.getSelected();
+  var activePointSet = appState.pointSets.get(appState.get("selectedPointSetId"));
   if (!activePointSet || activePointSet.isFull()) {
-    activePointSet = new appState.pointSets.model();
+    activePointSet = new appState.pointSets.model({group: appState.get("selectedGroupId")}, {appState: appState});
     appState.pointSets.add(activePointSet);
-    appState.pointSets.select(activePointSet );
   }
   if (activePointSet) {
     var point = new Point({
@@ -122,7 +115,11 @@ appState.pointSets.listenTo(appState.workingAreaView, "workingAreaClick", functi
     });
     var points = activePointSet.get("points");
     activePointSet.set("points", _.union(points, [point]));
-    activePointSet.save();
+    activePointSet.save({}, {
+      success: function(model, response, options) {
+        appState.set("selectedPointSetId", model.get("id"));
+      }
+    });
   }
 });
 
@@ -131,6 +128,7 @@ appState.pointSets.listenTo(appState.workingAreaView, "workingAreaClick", functi
 
 // Grab the application state if it was saved locally.
 appState.fetch({
+  appState: appState,
   success: function() {
     console.log("AppState fetched.");
   },
@@ -153,11 +151,12 @@ appState.fetch({
 
 appState.pointSets.localStorage = new Backbone.LocalStorage("com.vietjtnguyen.annotator.Line");
 appState.pointSets.fetch({
+  appState: appState,
   success: function() { console.log("points fetched"); },
   error: function() { console.log("error fetching points"); }
 });
-
 appState.groups.fetch({
+  appState: appState,
   success: function() { console.log("groups fetched"); },
   error: function() { console.log("error fetching groups"); }
 });

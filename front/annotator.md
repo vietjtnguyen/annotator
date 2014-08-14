@@ -24,8 +24,8 @@ Objects:
 Views:
 
 - UtilityBox
-- VizArea
-  - PointSetViz (PointSet)
+- VisArea
+  - PointSetVis (PointSet)
 - PointSetList (PointSetCollection)
   - PointSetListItem (PointSet)
 - GroupList (GroupCollection)
@@ -36,48 +36,56 @@ Actions:
 - AppState:ZoomPan
   - Changes AppState directly
   - Triggers AppState change event
-  - VizArea view responds to AppState change event
+  - VisArea view responds to AppState change event
 - UtilityBox:ResetView
   - Changes AppState directly
   - Triggers AppState change event
-  - VizArea view responds to AppState change event
+  - VisArea view responds to AppState change event
 - UtilityBox:ToggleBG
   - Changes AppState directly
   - Triggers AppState change event
-  - VizArea view responds to AppState change event
+  - VisArea view responds to AppState change event
 - UtilityBox:ToggleGrid
   - Changes AppState directly
   - Triggers AppState change event
-  - VizArea view responds to AppState change event
+  - VisArea view responds to AppState change event
 - UtilityBox:LineColor
   - Changes AppState directly
   - Triggers AppState change event
   - AppState triggers rerender event
-  - PointSetViz responds to AppState rerender event
+  - PointSetVis responds to AppState rerender event
   - PointSetListItem responds to AppState rerender event
-- PointSetViz:Point:Click
-- PointSetViz:Point:Drag
-- PointSetViz:Polygon:Click
+- PointSetVis:Point:Click
+- PointSetVis:Point:Drag
+- PointSetVis:Polygon:Click
 - PointSetList:Add:Click
 - PointSetListItem:Click
 - PointSetListItem:Remove:Click
   - Kicks off removal transition on PointSetListItem
   - Triggers PointSet removal event
-  - PointSetViz responds to PointSet removal event
-  - PointSetViz kicks off removal transition
+  - PointSetVis responds to PointSet removal event
+  - PointSetVis kicks off removal transition
   - When PointSetListItem removal transition ends, destroys PointSet direction
   - PointSet destruction triggers PointSet destroy event
   - PointSetListItem responds to PointSet destroy event by removing self
-  - PointSetViz responds to PointSet destroy event by removing self
+  - PointSetVis responds to PointSet destroy event by removing self
 - GroupList:Add:Click
+  - Adds a Group to the GroupCollection
+  - Triggers GroupCollection add event
+  - GroupList responds to GroupCollection add event
+  - New GroupListItemView is created
 - GroupListItem:Click
   - Changes GroupListing selection directly
   - Triggers GroupListing change event
   - AppState responds to GroupListing change event
   - AppState triggers rerender event
-  - PointSetViz responds to AppState rerender event
+  - PointSetVis responds to AppState rerender event
   - PointSetListItem responds to AppState rerender event
 - GroupListItem:Remove:Click
+  - Kicks off removal transition on GroupListItem
+  - When GroupListItem removaltransition ends, destroys Group
+  - Group destruction triggers Group destroy event
+  - GroupListItem responds to Group destroy event by removing self
 
 API
 ---

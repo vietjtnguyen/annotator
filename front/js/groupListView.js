@@ -1,31 +1,44 @@
 var GroupListView = Backbone.View.extend({
 
   events: {
+    // If the add button is clicked then add a new group!
     "click #addGroupButton": "addItem"
   },
 
-  initialize: function() {
+  initialize: function(options) {
     var self = this;
-    self.listenTo(self.collection, "add", self.addItemView);
-    self.listenTo(self.collection, "reset", self.addAllItemViews);
+    self.appState = options.appState || self.appState;
+
+    // If the point set collection adds a model then we'll want to add an
+    // accompanying point set list item view.
+    self.listenTo(self.appState.groups, "add", self.addItemView);
+
+    self.listenTo(self.appState.groups, "reset", self.addAllItemViews);
   },
 
   addItem: function() {
     var self = this;
-    var newGroup = new Group();
-    self.collection.add(newGroup);
-    self.collection.select(newGroup);
+
+    var newGroup = new Group({}, {appState: self.appState});
+    newGroup.save({
+      success: function() {
+        appState.set("selectedModelId", newGroup.get("id"));
+      }
+    });
+
+    self.appState.groups.add(newGroup);
   },
 
   addItemView: function(newGroup) {
     var self = this;
-    var newView = new GroupListItemView({model: newGroup, collection: self.collection});
-    self.$("#groupListing").append(newView.render().el);
+    var newView = new GroupListItemView({appState: self.appState, model: newGroup});
+    self.$("#groupListing").append(newView.createDomElement());
   },
 
   addAllItemViews: function() {
+    console.log("It actually got called.");
     var self = this;
-    self.collection.forEach(self.addItemView, self);
+    self.appState.groups.forEach(self.addItemView, self);
   }
 
 });

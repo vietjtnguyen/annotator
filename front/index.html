@@ -23,8 +23,8 @@
       <button id="toggleGridButton" class="btn btn-default btn-xs btn-block"><span class="glyphicon glyphicon-th"></span> Toggle Grid</button>
     </p>
     <p>
-      <button id="undoButton" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-chevron-left"></span> Undo</button>
-      <button id="redoButton" class="btn btn-default btn-xs">Redo <span class="glyphicon glyphicon-chevron-right"></span></button>
+      <button id="undoButton" class="btn btn-default btn-xs" disabled="disabled"><span class="glyphicon glyphicon-chevron-left"></span> Undo</button>
+      <button id="redoButton" class="btn btn-default btn-xs" disabled="disabled">Redo <span class="glyphicon glyphicon-chevron-right"></span></button>
     </p>
     <p>
       <button id="changeLineColorButton" class="btn btn-default btn-xs btn-block" data-color="rgb(0, 0, 0)"><span class="glyphicon glyphicon-tint"></span> Line Color</button>
@@ -78,12 +78,8 @@
     <path id="svgPlus" d="M0,-4 V4 M-4,0 H4" stroke="#000" style="display: none;"/>
   </svg>
 
-  <script type="text/template" id="pointSetItemTemplate">
-    <a class="list-group-item" style="padding: 4px; padding-left: 7px;" id="pointSetItem<%= index %>" href="#"><span id="text">Line <%= index %> </span><span class="pull-right"><small><button class="btn btn-xs btn-danger glyphicon glyphicon-remove" style="margin-top: -5px"></button></small></span></a>
-  </script>
-
-  <script type="text/template" id="groupItemTemplate">
-    <a class="list-group-item portlet" style="padding: 4px; padding-left: 7px;" id="groupItem<%= index %>" href="#"><span id="text">Group <%= index %> </span><span class="pull-right"><small><button class="btn btn-xs btn-danger glyphicon glyphicon-remove" style="margin-top: -5px"></button></small></span></a>
+  <script type="text/template" id="listItemTemplate">
+    <a class="list-group-item" style="padding: 4px; padding-left: 7px;" href="#"><span id="text"></span><span class="pull-right"><small><button class="btn btn-xs btn-danger glyphicon glyphicon-remove" style="margin-top: -5px"></button></small></span></a>
   </script>
 
   <script type="text/javascript" src="js/external/jquery-1.11.1.js"></script>

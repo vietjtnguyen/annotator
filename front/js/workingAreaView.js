@@ -1,31 +1,61 @@
 var WorkingAreaView = Backbone.View.extend({
 
-  initialize: function() {
+  initialize: function(options) {
     var self = this;
-    self.create();
-    self.listenTo(self.model.currentImage, "change", self.renderImage);
-    self.listenTo(self.model, "change:background", self.renderBackgroundColor);
-    self.listenTo(self.model, "change:grid", self.renderGridVisibility);
-    self.listenTo(self.model, "change:zoom", self.renderZoom);
-    self.listenTo(self.collection, "add", self.addItemView);
-    self.listenTo(self.collection, "reset", self.addAllItemViews);
+    self.appState = options.appState || self.appState;
+
+    self.initializeD3();
+    
+    // If the current image changes somehow then we'll want to rerender the
+    // image element in the working area's SVG.
+    self.listenTo(self.appState, "change:currentImage", self.renderImage);
+    self.listenTo(self.appState.currentImage, "change", self.renderImage);
+
+    // If the background state changes then rerender the background.
+    self.listenTo(self.appState, "change:background", self.renderBackgroundColor);
+
+    // If the grid state changes then rerender the grid.
+    self.listenTo(self.appState, "change:grid", self.renderGridVisibility);
+
+    // If the zoom (pan and zoom) changes then rerender the zoom (i.e. update
+    // the transform on the origin group).
+    self.listenTo(self.appState, "change:zoom", self.renderZoom);
+
+    // If the point set collection changes then update the representation views
+    // accordingly.
+    self.listenTo(self.appState.pointSets, "add", self.addPointSetRepresentationView);
+    self.listenTo(self.appState.pointSets, "reset", self.addAllItemViews);
+
+    // Responding to D3 events requires special processing. D3 events bind to
+    // the DOM element that is responding and pass the datum and index as
+    // arguments. Here we wrap such event callbacks so that they are bound to
+    // this view and pass the DOM element, datum, and index as arguments. Note
+    // this has to come after the `initializeD3` call so that the appropriate
+    // D3 selections are available.
     self.delegateD3Events({
-      "zoom zoom": "zoomed",
-      "zoomend zoom": "zoomend",
+      "zoom zoomBehavior": "zoomed",
+      "zoomend zoomBehavior": "zoomend",
       "click clickRect": "canvasClick"
     });
   },
 
-  create: function() {
+  initializeD3: function() {
     var self = this;
+
     // Create the zoom behavior. This object is applied to a D3 selection by
     // "calling it" on a D3 selection. The callback is bound using `d3events`
     // and `delegateD3Events`.
     // <http://kangax.github.io/nfe/>.
-    self.zoom = d3.behavior.zoom()
+    self.zoomBehavior = d3.behavior.zoom()
       .scaleExtent([0.5, 10]);
+
+    // Apply the zoom behavior to the entire working area.
+    d3.select("#workingArea").call(self.zoomBehavior);
+
+    // Cache the D3 selection for the origin.
     self.origin = d3.select("#origin");
-    d3.select("#workingArea").call(self.zoom); // Apply the zoom behavior to selection 
+
+    // Create the pretty but rather useless grid.
     self.createGrid();
   },
 
@@ -33,9 +63,13 @@ var WorkingAreaView = Backbone.View.extend({
   // pixels.
   createGrid: function() {
     var self = this;
+
+    // Specify some grid parameters.
     var gridSpacing = 10,
         gridExtent = [-1000, -1000, 2000, 2000],
         gridRoot = d3.select("#gridLines");
+
+    // Create all of the horizontal lines.
     gridRoot.selectAll(".xaxis line")
       .data(d3.range(gridExtent[0], gridExtent[2] + gridSpacing, gridSpacing))
       .enter().append("line")
@@ -44,6 +78,8 @@ var WorkingAreaView = Backbone.View.extend({
       .attr("y1", gridExtent[1])
       .attr("x2", function(d) { return d; })
       .attr("y2", gridExtent[2]);
+
+    // Create all of the vertical lines.
     gridRoot.selectAll(".yaxis line")
       .data(d3.range(gridExtent[1], gridExtent[3] + gridSpacing, gridSpacing))
       .enter().append("line")
@@ -52,8 +88,11 @@ var WorkingAreaView = Backbone.View.extend({
       .attr("y1", function(d) { return d; })
       .attr("x2", gridExtent[2])
       .attr("y2", function(d) { return d; });
+
+    // Initialize the grid as off.
     d3.selectAll(".grid")
       .classed("off", true);
+
     // This `clickRect` is the click target for the whole SVG element.
     self.clickRect = self.origin.append("rect")
       .attr("x", gridExtent[0])
@@ -62,16 +101,6 @@ var WorkingAreaView = Backbone.View.extend({
       .attr("height", gridExtent[3] - gridExtent[1] + gridSpacing)
       .style("fill", "none")
       .style("pointer-events", "all");
-  },
-
-  // This function sets up the view to listen to the model based on events and
-  // callbacks listed in `modelEvents`.
-  delegateModelEvents: function(modelEvents) {
-    var self = this;
-    modelEvents = modelEvents || self.modelEvents;
-    _.forEach(modelEvents, function(callback, trigger) {
-      self.listenTo(self.model, trigger, self[callback]);
-    });
   },
 
   // Set up the D3 events such that the this context of the callback is the
@@ -93,17 +122,30 @@ var WorkingAreaView = Backbone.View.extend({
     });
   },
 
-  addItemView: function(newModel) {
-    console.log("workingAdd");
+  addPointSetRepresentationView: function(newModel) {
     var self = this;
-    var newView = new PointSetRepresentationView({model: newModel, collection: self.collection});
+
+    // Create the new representation view.
+    var newView = new PointSetRepresentationView({appState: self.appState, model: newModel});
+
+    // Use jQuery to append the representation element to the origin. Why not
+    // D3? I dunno, because Backbone uses jQuery.
     self.$("#origin").append(newView.render().el);
   },
 
   addAllItemViews: function() {
-    console.log("workingAddAll");
+    console.log("It actually got called!");
     var self = this;
     self.collection.forEach(self.addItem, self);
+  },
+
+  // Simply calls all of the other render functions.
+  render: function() {
+    var self = this;
+    self.renderImage();
+    self.renderBackgroundColor();
+    self.renderGridVisibility();
+    self.renderZoom();
   },
 
   // "Renders" the image by updating the `svg:image` element with the current
@@ -112,9 +154,9 @@ var WorkingAreaView = Backbone.View.extend({
   renderImage: function(model, value, options) {
     var self = this;
     self.origin.select("image")
-      .attr("width", self.model.currentImage.get("width"))
-      .attr("height", self.model.currentImage.get("height"))
-      .attr("xlink:href", self.model.currentImage.get("url"));
+      .attr("width", self.appState.currentImage.get("width"))
+      .attr("height", self.appState.currentImage.get("height"))
+      .attr("xlink:href", self.appState.currentImage.get("url"));
   },
 
   // "Renders" the background color by updating the body and grid classes.
@@ -139,7 +181,7 @@ var WorkingAreaView = Backbone.View.extend({
   renderZoom: function(model, value, options) {
     var self = this;
     self.origin.attr("transform", "translate(" + value.translate.toString() + "), scale(" + value.scale + ")");
-    self.zoom
+    self.zoomBehavior
       .translate(value.translate)
       .scale(value.scale);
   },
@@ -147,26 +189,34 @@ var WorkingAreaView = Backbone.View.extend({
   // This is a D3 event hooked into the view using `delegateD3Event`.
   zoomed: function(domElement, datum, index) {
     var self = this;
-    self.model.set("zoom", {
-      translate: self.zoom.translate(),
-      scale: self.zoom.scale()
+    self.appState.set("zoom", {
+      translate: self.zoomBehavior.translate(),
+      scale: self.zoomBehavior.scale()
     });
   },
 
   // This is a D3 event hooked into the view using `delegateD3Event`.
   zoomend: function(domElement, datum, index) {
     var self = this;
-    self.model.save();
+    self.appState.save();
   },
 
   // This is a D3 event hooked into the view using `delegateD3Event`.
   canvasClick: function(domElement, datum, index) {
     var self = this;
+
     // <http://stackoverflow.com/questions/19075381/d3-mouse-events-click-dragend> 
-    if (d3.event.defaultPrevented) return;
+    if (d3.event.defaultPrevented) {
+      return;
+    }
+
+    // A Ctrl+Click is considered a point removal operation so ignore it in
+    // this case.
     if (!d3.event.ctrlKey) {
+
       // <http://stackoverflow.com/questions/10247209/d3-click-coordinates-are-relative-to-page-not-svg-how-to-translate-them-chrom> 
       var mousePosition = d3.mouse(domElement);
+
       // Trigger an event off the view that other things will listen for.
       self.trigger("workingAreaClick", mousePosition);
     }

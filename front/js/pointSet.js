@@ -11,8 +11,18 @@ var PointSet = Backbone.Model.extend({
     group: null
   },
 
-  parse: function(response) {
+  initialize: function(attributes, options) {
+    var self = this;
+    self.appState = options.appState || self.appState;
+  },
+
+  parse: function(response, options) {
+    var self = this;
+    self.appState = options.appState || self.appState;
+
+    // Turn the vanilla point hashes into actual Point objects.
     response.points = _.map(response.points, function(i) { return new Point(i); });
+
     return response;
   },
 
@@ -24,12 +34,25 @@ var PointSet = Backbone.Model.extend({
     return _.invoke(this.get("points"), "toSvgCoord").join(" ");
   },
 
-  validate: function() {
-  },
-
   isFull: function() {
     console.log("wrong");
     return false;
+  },
+
+  selectSelf: function(force) {
+    var self = this;
+    if (self.appState.isInGroupMembershipMode()) {
+      var selectedGroupId = self.appState.get("selectedGroupId");
+      if (self.get("group") == selectedGroupId) {
+        self.set("group", "");
+      } else {
+        self.set("group", selectedGroupId);
+      }
+      self.save();
+    } else {
+      self.appState.set("selectedPointSetId", !force && self.appState.get("selectedPointSetId") === self.get("id") ? "" : self.get("id"));
+      self.appState.save();
+    }
   }
 
 });

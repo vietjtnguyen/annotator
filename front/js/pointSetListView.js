@@ -1,31 +1,44 @@
 var PointSetListView = Backbone.View.extend({
 
   events: {
+    // If the add button is clicked then add a new point set!
     "click #addPointSetButton": "addItem"
   },
 
-  initialize: function() {
+  initialize: function(options) {
     var self = this;
-    self.listenTo(self.collection, "add", self.addItemView);
-    self.listenTo(self.collection, "reset", self.addAllItemViews);
+    self.appState = options.appState || self.appState;
+
+    // If the point set collection adds a model then we'll want to add an
+    // accompanying point set list item view.
+    self.listenTo(self.appState.pointSets, "add", self.addItemView);
+
+    self.listenTo(self.appState.pointSets, "reset", self.addAllItemViews);
   },
 
   addItem: function() {
     var self = this;
-    var newModel = new self.collection.model();
-    self.collection.add(newModel);
-    self.collection.select(newModel);
+
+    var newPointSet = new self.appState.pointSets.model({}, {appState: self.appState});
+    newPointSet.save({
+      success: function() {
+        appState.set("selectedPointSetId", newPointSet.get("id"));
+      }
+    });
+
+    self.appState.pointSets.add(newPointSet);
   },
 
-  addItemView: function(newModel) {
+  addItemView: function(newPointSet) {
     var self = this;
-    var newView = new PointSetListItemView({model: newModel, collection: self.collection});
-    self.$("#lineListing").append(newView.render().el);
+    var newView = new PointSetListItemView({appState: self.appState, model: newPointSet});
+    self.$("#lineListing").append(newView.createDomElement());
   },
 
   addAllItemViews: function() {
+    console.log("It actually got called.");
     var self = this;
-    self.collection.forEach(self.addItemView, self);
+    self.appState.pointSets.forEach(self.addItemView, self);
   }
 
 });
