@@ -70,17 +70,63 @@ var AppState = Backbone.Model.extend({
 
 var appState = new AppState();
 
-// TODO: Might as well move these into the AppState initializer.
-appState.currentImage = new Image();
-appState.pointSets = new PointSetCollection([], {model: SinglePoint, appState: appState});
-appState.pointSets.localStorage = new Backbone.LocalStorage("com.vietjtnguyen.annotator.SinglePoint");
-appState.groups = new GroupCollection([], {appState: appState});
+var AppRouter = Backbone.Router.extend({
+  routes: {
+    "": "line",
+    "singlepoint": "singlepoint",
+    "line": "line",
+    "polyline": "polyline",
+    "polygon": "polygon"
+  },
+  singlepoint: function() {
+    var self = this;
+    self.initializeApp(SinglePoint, "SinglePoint");
+  },
+  line: function() {
+    var self = this;
+    self.initializeApp(Line, "Line");
+  },
+  polyline: function() {
+    var self = this;
+    self.initializeApp(PolyLine, "PolyLine");
+  },
+  polygon: function() {
+    var self = this;
+    self.initializeApp(Polygon, "Polygon");
+  },
+  initializeApp: function(model, name) {
+    var self = this;
+    // TODO: Might as well move these into the AppState initializer.
+    self.phaseA();
+    self.phaseB(model, name);
+    self.phaseC();
+    self.phaseD();
+  },
+  phaseA: function() {
+    appState.currentImage = new Image();
+  },
+  phaseB: function(model, name) {
+    appState.pointSets = new PointSetCollection([], {model: model, appState: appState});
+    appState.pointSets.localStorage = new Backbone.LocalStorage("com.vietjtnguyen.annotator." + name);
+  },
+  phaseC: function() {
+    appState.groups = new GroupCollection([], {appState: appState});
+  },
+  phaseD: function() {
+    // Create views
+    appState.workingAreaView = new WorkingAreaView({appState: appState, el: $("body")[0]});
+    appState.utilityBoxView = new UtilityBoxView({appState: appState, el: $("#utilityBox")[0]});
+    appState.setListingView = new PointSetListView({appState: appState, el: $("#pointSetSection")[0]});
+    appState.groupListingView = new GroupListView({appState: appState, el: $("#groupSection")[0]});
+  }
+});
 
-// Create views
-appState.workingAreaView = new WorkingAreaView({appState: appState, el: $("body")[0]});
-appState.utilityBoxView = new UtilityBoxView({appState: appState, el: $("#utilityBox")[0]});
-appState.setListingView = new PointSetListView({appState: appState, el: $("#pointSetSection")[0]});
-appState.groupListingView = new GroupListView({appState: appState, el: $("#groupSection")[0]});
+new AppRouter();
+
+Backbone.history.start({
+  pushState: false,
+  root: "/home/vnguyen/research/annotator/front/"
+});
 
 ////////////////////////////////////////////////////////////////////////////////
 // Establish cross event hooks after all instances have been created

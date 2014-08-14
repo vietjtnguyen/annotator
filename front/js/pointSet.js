@@ -90,6 +90,7 @@ var SinglePoint = PointSet.extend({
 var PointsBasedPointSet = PointSet.extend({
 
   updateSvgElement: function(d3Selection) {
+    var self = this;
     return d3Selection
       .attr("points", self.toSvgCoords());
   }
