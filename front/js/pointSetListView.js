@@ -20,7 +20,7 @@ var PointSetListView = Backbone.View.extend({
     var self = this;
 
     var newPointSet = new self.appState.pointSets.model({}, {appState: self.appState});
-    newPointSet.save({
+    newPointSet.save({}, {
       success: function() {
         appState.set("selectedPointSetId", newPointSet.get("id"));
       }

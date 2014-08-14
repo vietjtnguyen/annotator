@@ -25,6 +25,8 @@
 // http://mjolnic.github.io/bootstrap-colorpicker/
 // http://api.jquery.com/css/
 // http://stackoverflow.com/questions/4633125/is-it-possible-to-get-all-arguments-of-a-function-as-single-object-inside-that-f
+// http://tutorials.jenkov.com/svg/use-element.html
+// http://stackoverflow.com/questions/19484707/how-can-i-make-an-svg-scale-with-its-parent-container
 
 /*
  * Should objects trigger events on other objects or should they trigger events
@@ -70,8 +72,9 @@ var appState = new AppState();
 
 // TODO: Might as well move these into the AppState initializer.
 appState.currentImage = new Image();
-appState.pointSets = new PointSetCollection({model: Line}, {appState: appState});
-appState.groups = new GroupCollection({}, {appState: appState});
+appState.pointSets = new PointSetCollection([], {model: SinglePoint, appState: appState});
+appState.pointSets.localStorage = new Backbone.LocalStorage("com.vietjtnguyen.annotator.SinglePoint");
+appState.groups = new GroupCollection([], {appState: appState});
 
 // Create views
 appState.workingAreaView = new WorkingAreaView({appState: appState, el: $("body")[0]});
@@ -149,7 +152,6 @@ appState.fetch({
   }
 });
 
-appState.pointSets.localStorage = new Backbone.LocalStorage("com.vietjtnguyen.annotator.Line");
 appState.pointSets.fetch({
   appState: appState,
   success: function() { console.log("points fetched"); },

@@ -57,7 +57,48 @@ var PointSet = Backbone.Model.extend({
 
 });
 
-var Line = PointSet.extend({
+var SinglePoint = PointSet.extend({
+
+  localStorage: new Backbone.LocalStorage("com.vietjtnguyen.annotator.SinglePoint"),
+
+  validate: function() {
+    var self = this;
+    if (self.get("points").length > 1) {
+      return "point has " + self.get("points").length + " points, can only have at most one.";
+    }
+  },
+
+  isFull: function() {
+    console.log("right");
+    var self = this;
+    return self.get("points").length >= 1;
+  },
+
+  appendSvgElement: function(d3Selection) {
+    return d3Selection.append("use")
+      .attr("xlink:href", "#plusPath");
+  },
+
+  updateSvgElement: function(d3Selection) {
+    var self = this;
+    return d3Selection
+      .attr("transform", "translate(" + self.toSvgCoords() + ")");
+  }
+
+});
+
+var PointsBasedPointSet = PointSet.extend({
+
+  updateSvgElement: function(d3Selection) {
+    return d3Selection
+      .attr("points", self.toSvgCoords());
+  }
+
+});
+
+var Line = PointsBasedPointSet .extend({
+  
+  svgElement: "polyline",
 
   localStorage: new Backbone.LocalStorage("com.vietjtnguyen.annotator.Line"),
 
@@ -72,6 +113,30 @@ var Line = PointSet.extend({
     console.log("right");
     var self = this;
     return self.get("points").length >= 2;
+  },
+
+  appendSvgElement: function(d3Selection) {
+    return d3Selection.append("polyline");
+  }
+
+});
+
+var PolyLine = PointsBasedPointSet .extend({
+  
+  localStorage: new Backbone.LocalStorage("com.vietjtnguyen.annotator.PolyLine"),
+
+  appendSvgElement: function(d3Selection) {
+    return d3Selection.append("polyline");
+  }
+
+});
+
+var Polygon = PointsBasedPointSet .extend({
+
+  localStorage: new Backbone.LocalStorage("com.vietjtnguyen.annotator.Polygon"),
+
+  appendSvgElement: function(d3Selection) {
+    return d3Selection.append("polygon");
   }
 
 });

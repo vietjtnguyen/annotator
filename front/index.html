@@ -71,11 +71,13 @@
   </div>
 
   <svg id="workingArea">
+    <defs>
+      <path id="plusPath" d="M0,-4 V4 M-4,0 H4"/>
+    </defs>
     <g id="origin" transform="translate(0, 0), scale(1)">
       <g id="gridLines"></g>
       <image width="0" height="0" href=""></image>
     </g>
-    <path id="svgPlus" d="M0,-4 V4 M-4,0 H4" stroke="#000" style="display: none;"/>
   </svg>
 
   <script type="text/template" id="listItemTemplate">

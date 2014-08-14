@@ -84,10 +84,10 @@ var PointSetRepresentationView = Backbone.View.extend({
 
     // Create the polygonal representation of the point set and cache the D3
     // selection.
-    self.polySelection = self.setGroup.selectAll("polygon")
+    self.polySelection = self.setGroup.selectAll(self.model.svgElement)
       .data(["bg", "fg"], function(d, i) { return d; })
-      .enter()
-      .append("polygon")
+      .enter();
+    self.polySelection = self.model.appendSvgElement(self.polySelection)
       .classed("polygonBg", function(d, i) { return d == "bg"; })
       .classed("polygonFg", function(d, i) { return d == "fg"; });
 
@@ -175,7 +175,8 @@ var PointSetRepresentationView = Backbone.View.extend({
 
   renderPoly: function() {
     var self = this;
-    self.polySelection.attr("points", self.model.toSvgCoords());
+    self.model.updateSvgElement(self.polySelection);
+    // self.polySelection.attr("points", self.model.toSvgCoords());
   },
 
   renderLineColor: function() {
