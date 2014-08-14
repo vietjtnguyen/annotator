@@ -19,6 +19,10 @@ body.dark {
   background: #000;
 }
 
+a {
+  cursor: pointer;
+}
+
 #workingArea {
   width: 100%;
   height: 100%;
