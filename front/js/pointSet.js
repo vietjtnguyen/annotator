@@ -43,7 +43,7 @@ var PointSet = Backbone.Model.extend({
     var self = this;
     if (self.appState.isInGroupMembershipMode()) {
       var selectedGroupId = self.appState.get("selectedGroupId");
-      if (self.get("group") == selectedGroupId) {
+      if (!force && self.get("group") == selectedGroupId) {
         self.set("group", "");
       } else {
         self.set("group", selectedGroupId);

@@ -170,6 +170,7 @@ var PointSetRepresentationView = Backbone.View.extend({
       .duration(250)
       .style("opacity", 0)
       .remove();
+    self.dataSelection = self.setGroup.selectAll("circle");
   },
 
   renderPoly: function() {
@@ -240,12 +241,16 @@ var PointSetRepresentationView = Backbone.View.extend({
   handlePointClick: function(domElement, datum, index) {
     var self = this;
 
+    // If we click or drag a point we'll force the selection of the point set
+    // instead of toggling it.
+    self.model.selectSelf(true);
+
     // If we enter this if statement then we are not really handling a click
     // but instead handling a drag end. If that's the case then force select
     // this point set and ignore the rest of the click-specific behavior.
     // <http://stackoverflow.com/questions/19075381/d3-mouse-events-click-dragend> 
     if (d3.event.defaultPrevented) {
-      self.model.selectSelf(true);
+      // self.model.selectSelf(true);
       return;
     }
 
@@ -259,8 +264,8 @@ var PointSetRepresentationView = Backbone.View.extend({
       self.model.save();
     }
 
-    // We're clicking the point set so treat it like a selection action.
-    self.model.selectSelf();
+    // // We're clicking the point set so treat it like a selection action.
+    // self.model.selectSelf();
   },
 
   handlePointDragStart: function(domElement, datum, index) {
