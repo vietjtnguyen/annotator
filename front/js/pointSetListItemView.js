@@ -49,6 +49,9 @@ var PointSetListItemView = Backbone.View.extend({
     // purpose. We don't respond to add events because adds are always appended
     // to the end and don't affect existing indices.
     self.listenTo(self.appState.pointSets, "remove", self.renderItemText);
+
+    // TODO
+    self.listenTo(self.appState.pointSets, "renderPointSetType", self.renderItemText);
   },
 
   // Create the element from an underscore template and then set the Backbone

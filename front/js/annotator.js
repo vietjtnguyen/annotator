@@ -22,7 +22,81 @@ var AppState = Backbone.Model.extend({
 
   initialize: function() {
     var self = this;
-    self.finishedInitializing = false;
+
+    // Populate the current image. This model doesn't get deleted or destroyed.
+    // If the image changes then the ID is changed and a fetch performed.
+    self.currentImage = new Image();
+
+    // Establish the collection of point sets. This collection itself does not
+    // get deleted or destroyed. When point set type or annotation changes the
+    // type is changed on this collection and data is refetched back into this
+    // same collection.
+    // TODO: Is this idiomatic or should it just create a new collection
+    // everytime changes are made?
+    self.pointSets = new PointSetCollection([], {model: PolyLine, appState: self});
+    self.pointSets.localStorage = new Backbone.LocalStorage("com.vietjtnguyen.annotator.PolyLine");
+
+    // Establish the collection of groups. Like the collection of point sets,
+    // this does not change across changes.
+    self.groups = new GroupCollection([], {appState: self});
+
+    // The utility box is used for various application wide settings.
+    self.utilityBoxView = new UtilityBoxView({appState: self, el: $("#utilityBox")[0]});
+
+    // The working area view owns the point set visualizations. It is
+    // responsible for acting as a parent for those visualizations along with
+    // creating and adding them on point set collection add events.
+    self.workingAreaView = new WorkingAreaView({appState: self, el: $("body")[0]});
+
+    // The set listing view is the list of point sets in the right tool pane.
+    // This view acts as a parent to the individual point set item views and is
+    // responsible for creating and adding those item views. Those item views
+    // can control the selection and destruction of point sets.
+    self.setListingView = new PointSetListView({appState: self, el: $("#pointSetSection")[0]});
+
+    // The group listing view is similar to the set listing view in
+    // responsibilities except for groups instead of point sets.
+    self.groupListingView = new GroupListView({appState: self, el: $("#groupSection")[0]});
+
+    // We want to the current image *model* to listen to changes in the
+    // `currentImage` attribute on the application state so that the current
+    // image model can update via a fetch accordingly.
+    self.currentImage.listenTo(self, "change:currentImage", function() {
+      self.currentImage
+        .set("id", self.get("currentImage"))
+        .fetch({
+          success: function() {
+            console.log("currentImage fetched");
+            console.log(self.currentImage);
+          }
+        });
+    });
+
+    // Have the point set listen to the working area view for any "canvas clicks"
+    // to know when to add points to the selected point set.
+    self.pointSets.listenTo(self.workingAreaView, "workingAreaClick", function(mousePosition) {
+      console.log("pointSet workingAreaClick");
+      console.log(mousePosition);
+      var activePointSet = self.pointSets.get(self.get("selectedPointSetId"));
+      if (!activePointSet || activePointSet.isFull()) {
+        activePointSet = new self.pointSets.model({group: self.get("selectedGroupId")}, {appState: self});
+        self.pointSets.add(activePointSet);
+      }
+      if (activePointSet) {
+        var point = new Point({
+          id: guid(),
+          x: mousePosition[0],
+          y: mousePosition[1]
+        });
+        var points = activePointSet.get("points");
+        activePointSet.set("points", _.union(points, [point]));
+        activePointSet.save({}, {
+          success: function(model, response, options) {
+            self.set("selectedPointSetId", model.get("id"));
+          }
+        });
+      }
+    });
   },
 
   isInGroupMembershipMode: function() {
@@ -69,94 +143,17 @@ var AppRouter = Backbone.Router.extend({
 
   initializeApp: function(model, name) {
     var self = this;
-    // TODO: Might as well move these into the AppState initializer.
-    if (!appState.finishedInitializing) {
-      self.phaseA();
-    }
-    self.phaseB(model, name);
-    if (!appState.finishedInitializing) {
-      self.phaseC();
-      self.phaseD();
-      self.phaseE();
-    }
-    self.phaseF();
-    appState.finishedInitializing = true;
+    self.initializePointSetType(model, name);
+    appState.setListingView.setPointSetType(name);
+    self.fetchAnnotation();
   },
 
-  phaseA: function() {
-    appState.currentImage = new Image();
+  initializePointSetType: function(model, name) {
+    appState.pointSets.model = model;
+    appState.pointSets.localStorage = new Backbone.LocalStorage("com.vietjtnguyen.annotator." + name);
   },
 
-  phaseB: function(model, name) {
-    if (!appState.finishedInitializing) {
-      appState.pointSets = new PointSetCollection([], {model: model, appState: appState});
-      appState.pointSets.localStorage = new Backbone.LocalStorage("com.vietjtnguyen.annotator." + name);
-    } else {
-      appState.pointSets.model = model;
-      appState.pointSets.localStorage = new Backbone.LocalStorage("com.vietjtnguyen.annotator." + name);
-    }
-  },
-
-  phaseC: function() {
-    appState.groups = new GroupCollection([], {appState: appState});
-  },
-
-  // Create views
-  phaseD: function() {
-    appState.workingAreaView = new WorkingAreaView({appState: appState, el: $("body")[0]});
-    appState.utilityBoxView = new UtilityBoxView({appState: appState, el: $("#utilityBox")[0]});
-    appState.setListingView = new PointSetListView({appState: appState, el: $("#pointSetSection")[0]});
-    appState.groupListingView = new GroupListView({appState: appState, el: $("#groupSection")[0]});
-  },
-
-  // Establish cross event hooks after all instances have been created
-  phaseE: function() {
-
-    // We want to the current image *model* to listen to changes in the
-    // `currentImage` attribute on the application state so that the current image
-    // model can update via a fetch accordingly.
-    appState.currentImage.listenTo(appState, "change:currentImage", function() {
-      console.log("what");
-      appState.currentImage
-        .set("id", appState.get("currentImage"))
-        .fetch({
-          success: function() {
-            console.log("currentImage fetched");
-            console.log(appState.currentImage);
-          }
-        });
-    });
-
-    // Have the point set listen to the working area view for any "canvas clicks"
-    // to know when to add points to the selected point set.
-    appState.pointSets.listenTo(appState.workingAreaView, "workingAreaClick", function(mousePosition) {
-      console.log("pointSet workingAreaClick");
-      console.log(mousePosition);
-      var activePointSet = appState.pointSets.get(appState.get("selectedPointSetId"));
-      if (!activePointSet || activePointSet.isFull()) {
-        activePointSet = new appState.pointSets.model({group: appState.get("selectedGroupId")}, {appState: appState});
-        appState.pointSets.add(activePointSet);
-      }
-      if (activePointSet) {
-        var point = new Point({
-          id: guid(),
-          x: mousePosition[0],
-          y: mousePosition[1]
-        });
-        var points = activePointSet.get("points");
-        activePointSet.set("points", _.union(points, [point]));
-        activePointSet.save({}, {
-          success: function(model, response, options) {
-            appState.set("selectedPointSetId", model.get("id"));
-          }
-        });
-      }
-    });
-
-  },
-
-  // Fetch after all hooks have been established to return to previous state
-  phaseF: function() {
+  fetchAnnotation: function() {
 
     // Grab the application state if it was saved locally.
     appState.fetch({
@@ -164,9 +161,11 @@ var AppRouter = Backbone.Router.extend({
       success: function() {
         console.log("AppState fetched.");
       },
+
       // If no application state was retrieved then initialize one.
       error: function() {
         console.log("AppState not fetched, initializing.");
+
         appState.currentImage.set({
           id: "2008_000003",
           width: 500,
@@ -174,6 +173,7 @@ var AppRouter = Backbone.Router.extend({
           url: "../example-data/images/2008_000003.jpg",
           comment: ""
         }).save();
+
         // Setting the current image on the application state will trigger the
         // current image model to fetch from the server and update.
         appState.set("currentImage", "2008_000003");
