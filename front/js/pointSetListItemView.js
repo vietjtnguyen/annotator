@@ -6,7 +6,7 @@ var PointSetListItemView = Backbone.View.extend({
 
   events: {
     "click": "selectSelf",
-    "click .glyphicon-remove": "startPrettyRemoval",
+    "click .glyphicon-remove": "startPrettyDestroy",
     "mouseover": "broadcastMouseOver",
     "mouseout": "broadcastMouseOut"
   },
@@ -26,6 +26,12 @@ var PointSetListItemView = Backbone.View.extend({
     // If the model changes its group membership then rerender the selection
     // visual in case we are in group membership mode.
     self.listenTo(self.model, "change:group", self.renderSelection);
+
+    // If the model gets removed from the collection (perhaps due to a resync)
+    // then start a pretty removal that leads to the removal of the view
+    // (instead of destruction of the model which leads to the removal of the
+    // view).
+    self.listenTo(self.model, "remove", self.startPrettyRemove);
     
     // If the model gets destroyed then remove the list item (self.remove is a
     // Backbone method).
@@ -89,7 +95,17 @@ var PointSetListItemView = Backbone.View.extend({
     self.model.selectSelf();
   },
 
-  startPrettyRemoval: function() {
+  startPrettyDestroy: function() {
+    var self = this;
+    self._prettyRemove(true);
+  },
+
+  startPrettyRemove: function() {
+    var self = this;
+    self._prettyRemove(false);
+  },
+
+  _prettyRemove: function(destroy) {
     var self = this;
     // Trigger this event to notify others that removal has started.
     self.model.trigger("startingRemoval");
@@ -106,9 +122,13 @@ var PointSetListItemView = Backbone.View.extend({
           .duration(250)
           .style("margin-top", -origHeight+"px")
           .each("end", function() {
-            // Model destruction also removes the model from the collection
-            // (PointSetCollection) that it is a part of.
-            self.model.destroy();
+            if (destroy) {
+              // Model destruction also removes the model from the collection
+              // (PointSetCollection) that it is a part of.
+              self.model.destroy();
+            } else {
+              self.remove();
+            }
           });
       });
   },

@@ -17,6 +17,8 @@ var GroupListItemView = Backbone.View.extend({
     // element.
     self.listenTo(self.model, "change:id", self.renderId);
 
+    self.listenTo(self.model, "remove", self.startPrettyRemoval);
+
     // If the model gets destroyed then remove the list item (self.remove is a
     // Backbone method).
     self.listenTo(self.model, "destroy", self.remove);

@@ -32,10 +32,13 @@ var PointSetRepresentationView = Backbone.View.extend({
     // If the model is starting removal (probably triggered by the list item
     // remove button) then we want to start the visual removal animation. The
     // removal the model itself should be handled by the list item.
-    self.listenTo(self.model, "startingRemoval", self.startPrettyRemoval);
+    self.listenTo(self.model, "startingRemoval", self.startPrettyRemove);
     
     // If the Backbone model is destroyed then remove this view (self.remove is
-    // a Backbone method).
+    // a Backbone method). Worth noting is that the representation doesn't
+    // trigger any removals on its own. It is wholly dependent on the list item
+    // triggering a "startingRemoval" event on the model which is responded to
+    // by the above callback. The callback above will remove this view.
     self.listenTo(self.model, "destroy", self.remove);
 
     // If the application broadcasts a rerender then respond accordingly.
@@ -227,11 +230,14 @@ var PointSetRepresentationView = Backbone.View.extend({
     });
   },
 
-  startPrettyRemoval: function() {
+  startPrettyRemove: function() {
     var self = this;
     d3.select(self.el).transition()
       .duration(250)
-      .style("opacity", 0);
+      .style("opacity", 0)
+      .each("end", function() {
+        self.remove();
+      });
   },
 
   selectSelf: function(domElement, datum, index) {

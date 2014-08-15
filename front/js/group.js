@@ -9,12 +9,24 @@ var Group = Backbone.Model.extend({
   initialize: function(attributes, options) {
     var self = this;
     self.appState = options.appState || self.appState;
+
+    // If this model gets removed or destroyed we want to make sure it doesn't
+    // stay as the application's selection.
+    self.on("remove", self.removeSelection);
+    self.on("destroy", self.removeSelection);
   },
 
   parse: function(response, options) {
     var self = this;
     self.appState = options.appState || self.appState;
     return response;
+  },
+
+  removeSelection: function() {
+    var self = this;
+    if (self.appState.get("selectedGroupId") == self.get("id")) {
+      self.appState.set("selectedGroupId", "");
+    }
   }
 
 });

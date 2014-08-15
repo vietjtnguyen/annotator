@@ -14,6 +14,11 @@ var PointSet = Backbone.Model.extend({
   initialize: function(attributes, options) {
     var self = this;
     self.appState = options.appState || self.appState;
+
+    // If this model gets removed or destroyed we want to make sure it doesn't
+    // stay as the application's selection.
+    self.on("remove", self.removeSelection);
+    self.on("destroy", self.removeSelection);
   },
 
   parse: function(response, options) {
@@ -24,6 +29,13 @@ var PointSet = Backbone.Model.extend({
     response.points = _.map(response.points, function(i) { return new Point(i); });
 
     return response;
+  },
+
+  removeSelection: function() {
+    var self = this;
+    if (self.appState.get("selectedPointSetId") == self.get("id")) {
+      self.appState.set("selectedPointSetId", "");
+    }
   },
 
   // Converts the points stored by the model into a string of coordinates

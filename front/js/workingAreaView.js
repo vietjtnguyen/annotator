@@ -136,7 +136,7 @@ var WorkingAreaView = Backbone.View.extend({
   addAllItemViews: function() {
     console.log("It actually got called!");
     var self = this;
-    self.collection.forEach(self.addItem, self);
+    appState.pointSets.forEach(self.addPointSetRepresentationView, self);
   },
 
   // Simply calls all of the other render functions.
