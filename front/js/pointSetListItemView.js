@@ -51,7 +51,7 @@ var PointSetListItemView = Backbone.View.extend({
     self.listenTo(self.appState.pointSets, "remove", self.renderItemText);
 
     // TODO
-    self.listenTo(self.appState.pointSets, "renderPointSetType", self.renderItemText);
+    self.listenTo(self.appState.pointSets, "change:pointSetType", self.renderItemText);
   },
 
   // Create the element from an underscore template and then set the Backbone

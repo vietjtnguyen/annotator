@@ -12,8 +12,6 @@ var GroupListView = Backbone.View.extend({
     // If the point set collection adds a model then we'll want to add an
     // accompanying point set list item view.
     self.listenTo(self.appState.groups, "add", self.addItemView);
-
-    self.listenTo(self.appState.groups, "reset", self.addAllItemViews);
   },
 
   addItem: function() {
@@ -33,12 +31,6 @@ var GroupListView = Backbone.View.extend({
     var self = this;
     var newView = new GroupListItemView({appState: self.appState, model: newGroup});
     self.$("#groupListing").append(newView.createDomElement());
-  },
-
-  addAllItemViews: function() {
-    console.log("It actually got called.");
-    var self = this;
-    self.appState.groups.forEach(self.addItemView, self);
   }
 
 });

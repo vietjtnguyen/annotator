@@ -24,7 +24,6 @@ var WorkingAreaView = Backbone.View.extend({
     // If the point set collection changes then update the representation views
     // accordingly.
     self.listenTo(self.appState.pointSets, "add", self.addPointSetRepresentationView);
-    self.listenTo(self.appState.pointSets, "reset", self.addAllItemViews);
 
     // Responding to D3 events requires special processing. D3 events bind to
     // the DOM element that is responding and pass the datum and index as
@@ -131,12 +130,6 @@ var WorkingAreaView = Backbone.View.extend({
     // Use jQuery to append the representation element to the origin. Why not
     // D3? I dunno, because Backbone uses jQuery.
     self.$("#origin").append(newView.render().el);
-  },
-
-  addAllItemViews: function() {
-    console.log("It actually got called!");
-    var self = this;
-    appState.pointSets.forEach(self.addPointSetRepresentationView, self);
   },
 
   // Simply calls all of the other render functions.
