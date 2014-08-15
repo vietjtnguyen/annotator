@@ -48,10 +48,10 @@ var PointSetListItemView = Backbone.View.extend({
     // update the visual index in the list. This index has no functional
     // purpose. We don't respond to add events because adds are always appended
     // to the end and don't affect existing indices.
-    self.listenTo(self.appState.pointSets, "remove", self.renderItemText);
+    self.listenTo(self.appState.pointSets, "remove", self.renderText);
 
     // TODO
-    self.listenTo(self.appState.pointSets, "change:pointSetType", self.renderItemText);
+    self.listenTo(self.appState.pointSets, "change:pointSetType", self.renderText);
   },
 
   // Create the element from an underscore template and then set the Backbone
@@ -80,7 +80,7 @@ var PointSetListItemView = Backbone.View.extend({
     var self = this;
     var index = self.appState.pointSets.indexOf(self.model);
     var bullets = _.map(_.range(self.model.get("points").length), function() { return "&bull;"; }).join("");
-    self.$("#text").html("Line " + index + " " + bullets);
+    self.$("#text").html("Item " + index + " " + bullets);
   },
 
   renderSelection: function(selectedModel) {

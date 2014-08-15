@@ -9,8 +9,10 @@ var PointSetListView = Backbone.View.extend({
     var self = this;
     self.appState = options.appState || self.appState;
 
-    self.pointSetType = "Line";
+    self._pointSetType = "Line";
 
+    // If the point set type changes then rerender the interface text
+    // accordingly.
     self.on("change:pointSetType", self.renderPointSetType);
 
     // If the point set collection adds a model then we'll want to add an
@@ -18,16 +20,19 @@ var PointSetListView = Backbone.View.extend({
     self.listenTo(self.appState.pointSets, "add", self.addItemView);
   },
 
+  // Emulates a Backbone Model's behavior by setting an internal attribute and
+  // triggering an event (which the list item listens to in order to rerender
+  // its own text).
   setPointSetType: function(pointSetType) {
     var self = this;
-    self.pointSetType = pointSetType;
-    self.trigger("change:pointSetType");
+    self._pointSetType = pointSetType;
+    self.trigger("change:pointSetType", self._pointSetType);
   },
 
   renderPointSetType: function() {
     var self = this;
-    self.$("h3").text(self.pointSetType);
-    self.$("#addText").text("Add " + self.pointSetType);
+    self.$("h3").text(self._pointSetType);
+    self.$("#addText").text("Add " + self._pointSetType);
   },
 
   addItem: function() {

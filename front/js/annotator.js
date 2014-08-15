@@ -61,48 +61,71 @@ var AppState = Backbone.Model.extend({
     // We want to the current image *model* to listen to changes in the
     // `currentImage` attribute on the application state so that the current
     // image model can update via a fetch accordingly.
-    self.currentImage.listenTo(self, "change:currentImage", function() {
-      self.currentImage
-        .set("id", self.get("currentImage"))
-        .fetch({
-          success: function() {
-            console.log("currentImage fetched");
-            console.log(self.currentImage);
-          }
-        });
-    });
+    self.listenTo(self, "change:currentImage", self.refreshCurrentImage);
 
     // Have the point set listen to the working area view for any "canvas clicks"
     // to know when to add points to the selected point set.
-    self.pointSets.listenTo(self.workingAreaView, "workingAreaClick", function(mousePosition) {
-      console.log("pointSet workingAreaClick");
-      console.log(mousePosition);
-      var activePointSet = self.pointSets.get(self.get("selectedPointSetId"));
-      if (!activePointSet || activePointSet.isFull()) {
-        activePointSet = new self.pointSets.model({group: self.get("selectedGroupId")}, {appState: self});
-        self.pointSets.add(activePointSet);
-      }
-      if (activePointSet) {
-        var point = new Point({
-          id: guid(),
-          x: mousePosition[0],
-          y: mousePosition[1]
-        });
-        var points = activePointSet.get("points");
-        activePointSet.set("points", _.union(points, [point]));
-        activePointSet.save({}, {
-          success: function(model, response, options) {
-            self.set("selectedPointSetId", model.get("id"));
-          }
-        });
-      }
-    });
+    self.listenTo(self.workingAreaView, "workingAreaClick", self.addNewPoint);
   },
 
   isInGroupMembershipMode: function() {
     var self = this;
     return self.get("selectedGroupId") !== "";
   },
+
+  refreshCurrentImage: function() {
+    var self = this;
+    self.currentImage
+      .set("id", self.get("currentImage"))
+      .fetch({
+        success: function() {
+          console.log("currentImage fetched");
+          console.log(self.currentImage);
+        }
+      });
+  },
+
+  addNewPoint: function(mousePosition) {
+    var self = this;
+
+    // If there is a point set selected then we'll treat that as the "active"
+    // point set that we'll work with.
+    var activePointSet = self.pointSets.get(self.get("selectedPointSetId"));
+
+    // If there isn't a valid active point set then we'll create a new one,
+    // initialize it with the selected group ID, and add it to our
+    // collection.
+    if (!activePointSet || activePointSet.isFull()) {
+      activePointSet = new self.pointSets.model({group: self.get("selectedGroupId")}, {appState: self});
+      self.pointSets.add(activePointSet);
+    }
+
+    // At this point we should have an active point set.
+    if (activePointSet) {
+
+      // We'll create a new `Point` object from the mouse click and assign it
+      // a unique GUID (so that we can key with it for D3 data selections).
+      var point = new Point({
+        id: guid(),
+        x: mousePosition[0],
+        y: mousePosition[1]
+      });
+
+      // Then we'll append it to the active point set's existing list of
+      // points.
+      var points = activePointSet.get("points");
+      activePointSet.set("points", _.union(points, [point]));
+
+      // Finally we'll save every action and select the active point set so
+      // that we can easily chain point adding operations.
+      activePointSet.save({}, {
+        success: function(model, response, options) {
+          self.set("selectedPointSetId", model.get("id"));
+        }
+      });
+
+    }
+  }
 
 });
 
