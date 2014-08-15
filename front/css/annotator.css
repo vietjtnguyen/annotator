@@ -1,6 +1,4 @@
-/*
- * This is needed to get the canvas to stretch on Firefox.
- */
+/* This is needed to get the canvas to stretch on Firefox. */
 html {
   width: 100%;
   height: 100%;

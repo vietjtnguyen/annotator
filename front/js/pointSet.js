@@ -1,14 +1,17 @@
-// The point set is a simple Backbone Model that contains one attribute: an
-// array of point objects. The point set generalizes many different discrete
-// annotation types including lines, polylines, polygons, and bounding boxes.
+// The point set is a simple Backbone Model that contains just a few
+// attributes: description, parent, and an array of point objects. The point
+// set generalizes many different discrete annotation types including lines,
+// polylines, polygons, and bounding boxes. Since it acts as a base class it
+// should be considered abstract and not instantiated.
 var PointSet = Backbone.Model.extend({
 
   localStorage: new Backbone.LocalStorage("com.vietjtnguyen.annotator.PointSet"),
 
   // Make sure that the point set starts off with an empty array of points.
   defaults: {
-    points: [],
-    group: null
+    description: null,
+    group: null,
+    points: []
   },
 
   initialize: function(attributes, options) {
@@ -69,6 +72,9 @@ var PointSet = Backbone.Model.extend({
 
 });
 
+// A single point is a point set which can only contain at most one point. This
+// is enforced with the `validate` function and communicated to the application
+// via `isFull`.
 var SinglePoint = PointSet.extend({
 
   localStorage: new Backbone.LocalStorage("com.vietjtnguyen.annotator.SinglePoint"),
@@ -109,6 +115,9 @@ var PointsBasedPointSet = PointSet.extend({
 
 });
 
+// A line is a point set which can only contain at most two points. This is
+// enforced with the `validate` function and communicated to the application
+// via `isFull`.
 var Line = PointsBasedPointSet .extend({
   
   svgElement: "polyline",
@@ -134,6 +143,9 @@ var Line = PointsBasedPointSet .extend({
 
 });
 
+// A poly line is a point set represented by a poly line drawn through the
+// points in order and not closing the path via a connection from the last
+// point to the first point.
 var PolyLine = PointsBasedPointSet .extend({
   
   localStorage: new Backbone.LocalStorage("com.vietjtnguyen.annotator.PolyLine"),
@@ -144,6 +156,9 @@ var PolyLine = PointsBasedPointSet .extend({
 
 });
 
+// A polygon is a point set represented by a poly line drawn through the points
+// in order and closing the path via a connection from the last point to the
+// first point.
 var Polygon = PointsBasedPointSet .extend({
 
   localStorage: new Backbone.LocalStorage("com.vietjtnguyen.annotator.Polygon"),

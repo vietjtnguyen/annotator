@@ -66,13 +66,13 @@
     </div>
   </div>
 
-  <div class="alert alert-info" role="alert" style="position: absolute; width: 50%; margin-left: -25%; left: 50%; top: 10px;">
+  <div id="infoBox" class="alert alert-info" role="alert" style="position: absolute; width: 50%; margin-left: -25%; left: 50%; top: 10px;">
     Click anywhere to add a point.
   </div>
 
   <svg id="workingArea">
     <defs>
-      <path id="plusPath" d="M0,-4 V4 M-4,0 H4"/>
+      <path id="plusPath" d="M0,-4 V4 M-4,0 H4" style="vector-effect: non-scaling-stroke;"/>
     </defs>
     <g id="origin" transform="translate(0, 0), scale(1)">
       <g id="gridLines"></g>

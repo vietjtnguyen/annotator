@@ -34,7 +34,7 @@ var PointSetListItemView = Backbone.View.extend({
     self.listenTo(self.model, "remove", self.startPrettyRemove);
     
     // If the model gets destroyed then remove the list item (self.remove is a
-    // Backbone method).
+    // Backbone method) immediately.
     self.listenTo(self.model, "destroy", self.remove);
 
     // If the selected point set changes then rerender the selection visual.
@@ -107,8 +107,12 @@ var PointSetListItemView = Backbone.View.extend({
 
   _prettyRemove: function(destroy) {
     var self = this;
-    // Trigger this event to notify others that removal has started.
+
+    // Trigger this event to notify others views (in particular the actual
+    // visualization) that removal has started so that they can start any
+    // removal transitions they have.
     self.model.trigger("startingRemoval");
+
     // This gets us a nice and smooth removal animation in two steps. First is
     // fades out the element, then it moves the element up using `margin-top`
     // in order to slide all subsequent elements into their new positions.
@@ -123,11 +127,21 @@ var PointSetListItemView = Backbone.View.extend({
           .style("margin-top", -origHeight+"px")
           .each("end", function() {
             if (destroy) {
+
               // Model destruction also removes the model from the collection
-              // (PointSetCollection) that it is a part of.
+              // (`PointSetCollection`) that it is a part of if the `destroy`
+              // flag is on (which it will be if called by clicking the remove
+              // button on the item). Actual view removal will occur in
+              // response to the model's `destroy` event.
               self.model.destroy();
+
             } else {
+
+              // If we're not destroying the model then we won't get a
+              // `destroy` event which signals us to remove the view so just
+              // remove it here.
               self.remove();
+
             }
           });
       });
