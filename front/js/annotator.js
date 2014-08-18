@@ -130,7 +130,6 @@ var AppState = Backbone.Model.extend({
 });
 
 ////////////////////////////////////////////////////////////////////////////////
-// Establish the application state and other models/views
 
 var appState = new AppState();
 

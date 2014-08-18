@@ -9,6 +9,26 @@ The front end involves a single-page application built using HTML/CSS/JS/SVG.
 Specifically it uses Backbone.js to manage data model synchrony with the back
 end and d3.js for visualization and control.
 
+Annotation Types
+----------------
+
+Line: two points, sets assigned a group
+PolyLine: n points
+Polygon: n points
+BoundingBox: 2 points, sets assigned a class
+Pose: n points, each assigned a class
+Skeleton: n predetermined points, each point
+
+Parallel Families: two points in a set, sets assigned a group, groups manageable
+Edges: n points in a set (polyline)
+Segmentation: n points in a set (polygon), sets assigned a class (type in, WordNet autocomplete)
+Objects: two points in a set (bounding box), sets assigned a class (type in, WordNet autocomplete)
+Pose: n (predetermined) points, each a (predetermined) class, lines drawn according to (predetermined) relationship
+Parts: n points in a set (polygon), sets assigned a class (type in, WordNet autocomplete), sets assigned a parent set (optional)
+
+Developer Stuff
+===============
+
 Event Flow
 ----------
 
@@ -90,15 +110,24 @@ Actions:
 API
 ---
 
-- `GET /images`
-- `GET /images/{image_id}`
-- `PUT /images/{image_id}`
-- `GET /images/{image_id}/lines`
-- `GET /images/{image_id}/lines/{line_id}`
-- `PUT /images/{image_id}/lines/{line_id}`
-- `GET /images/{image_id}/lines/{line_id}/points`
-- `GET /images/{image_id}/lines/{line_id}/points/{point_id}`
-- `PUT /images/{image_id}/lines/{line_id}/points/{point_id}`
+/parallel-families
+/parallel-families/trainval
+/parallel-families/trainval/2008_000003
+/api/image/53f124db538701254c0bdb79
+/api/parallel-familes
+/api/parallel-familes/2008_000003
+/api/parallel-familes/2008_000003/group
+/api/parallel-familes/2008_000003/point-set
+/api/parallel-familes/2008_000003/point-set/53f124db538701254c0bdb79
+
+/{annotation_name}/{set_name}
+/{annotation_name}/{set_name}/{image_name}
+/api
+/api/image/{image_id}
+/api/{annotation_name}
+/api/{annotation_name}/{image_name}
+/api/{annotation_name}/{image_name}/pointset/{point_id}
+/api/{annotation_name}/{image_name}/group/{group_id}
 
 Helpful Links
 -------------
@@ -134,3 +163,10 @@ Helpful Links
 - http://stackoverflow.com/questions/319530/restful-authentication
 - http://blog.synopse.info/post/2011/05/24/How-to-implement-RESTful-authentication
 - https://togetherjs.com/
+- https://flask-login.readthedocs.org/en/latest/
+- http://expressjs.com/4x/api.html
+- http://blog.modulus.io/nodejs-and-sqlite
+- https://code.google.com/p/restful-sqlite/source/browse/web.py
+- http://scotch.io/tutorials/javascript/build-a-restful-api-using-node-and-express-4
+- http://mongoosejs.com/docs/guide.html
+- http://www.getpostman.com/
