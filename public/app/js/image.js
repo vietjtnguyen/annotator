@@ -3,9 +3,10 @@
 // multiple annotations can exist for each image.
 var Image = Backbone.Model.extend({
 
-  localStorage: new Backbone.LocalStorage("com.vietjtnguyen.annotator.Image"),
+  idAttribute: "name",
 
   defaults: {
+    name: "",
     width: 0,
     height: 0,
     url: ""

@@ -86,7 +86,7 @@ var PointSetListItemView = Backbone.View.extend({
   renderSelection: function(selectedModel) {
     var self = this;
     if ( (self.appState.isInGroupMembershipMode() && self.model.get("group") === self.appState.get("selectedGroupId")) ||
-         (!self.appState.isInGroupMembershipMode() && self.model.get("id") === self.appState.get("selectedPointSetId")) ) {
+         (!self.appState.isInGroupMembershipMode() && self.model.get(self.model.idAttribute) === self.appState.get("selectedPointSetId")) ) {
       self.$el.addClass("active");
     } else {
       self.$el.removeClass("active");

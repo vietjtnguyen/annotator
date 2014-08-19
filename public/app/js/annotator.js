@@ -1,3 +1,8 @@
+// Establish API URL.
+var baseApiUrl = window.location.protocol + "//" + window.location.host;
+
+////////////////////////////////////////////////////////////////////////////////
+
 // This model represents the application state and doubly serves as the root
 // namespace for the application in the sense that point sets, views, and more
 // are attached to this model, but not as attributes.
@@ -7,8 +12,6 @@ var AppState = Backbone.Model.extend({
 
   defaults: {
     id: 0,
-    currentImage: null,
-    currentAnnotation: null,
     selectedPointSetId: "",
     selectedGroupId: "",
     background: "light",
@@ -34,7 +37,6 @@ var AppState = Backbone.Model.extend({
     // TODO: Is this idiomatic or should it just create a new collection
     // everytime changes are made?
     self.pointSets = new PointSetCollection([], {model: PolyLine, appState: self});
-    self.pointSets.localStorage = new Backbone.LocalStorage("com.vietjtnguyen.annotator.PolyLine");
 
     // Establish the collection of groups. Like the collection of point sets,
     // this does not change across changes.
@@ -61,7 +63,7 @@ var AppState = Backbone.Model.extend({
     // We want to the current image *model* to listen to changes in the
     // `currentImage` attribute on the application state so that the current
     // image model can update via a fetch accordingly.
-    self.listenTo(self, "change:currentImage", self.refreshCurrentImage);
+    self.listenTo(self, "imageChanged", self.refreshCurrentImage);
 
     // Have the point set listen to the working area view for any "canvas clicks"
     // to know when to add points to the selected point set.
@@ -76,11 +78,26 @@ var AppState = Backbone.Model.extend({
   refreshCurrentImage: function() {
     var self = this;
     self.currentImage
-      .set("id", self.get("currentImage"))
       .fetch({
         success: function() {
+          self.pointSets.url = baseApiUrl + "/api/parallel-lines/" + self.currentImage.get("_id") + "/point-set/";
           console.log("currentImage fetched");
           console.log(self.currentImage);
+          console.log(self.pointSets.url);
+
+          appState.pointSets.fetch({
+            appState: appState,
+            remove: true,
+            success: function() { console.log("points fetched"); },
+            error: function() { console.log("error fetching points"); }
+          });
+
+          appState.groups.fetch({
+            appState: appState,
+            remove: true,
+            success: function() { console.log("groups fetched"); },
+            error: function() { console.log("error fetching groups"); }
+          });
         }
       });
   },
@@ -120,7 +137,7 @@ var AppState = Backbone.Model.extend({
       // that we can easily chain point adding operations.
       activePointSet.save({}, {
         success: function(model, response, options) {
-          self.set("selectedPointSetId", model.get("id"));
+          self.set("selectedPointSetId", model.get(model.idAttribute));
         }
       });
 
@@ -136,46 +153,27 @@ var appState = new AppState();
 var AppRouter = Backbone.Router.extend({
 
   routes: {
-    "": "line",
-    "singlepoint": "singlepoint",
-    "line": "line",
-    "polyline": "polyline",
-    "polygon": "polygon"
+    "parallel-lines/:imageName/": "parallelLinesDirect",
+    "parallel-lines/set/:setName/:index/": "parallelLinesSet"
   },
 
-  singlepoint: function() {
+  parallelLinesDirect: function(imageName) {
     var self = this;
-    self.initializeApp(SinglePoint, "SinglePoint");
-  },
-
-  line: function() {
-    var self = this;
-    self.initializeApp(Line, "Line");
-  },
-
-  polyline: function() {
-    var self = this;
-    self.initializeApp(PolyLine, "PolyLine");
-  },
-
-  polygon: function() {
-    var self = this;
-    self.initializeApp(Polygon, "Polygon");
-  },
-
-  initializeApp: function(model, name) {
-    var self = this;
-    self.initializePointSetType(model, name);
+    self.initializePointSetType(Line, "Line");
     appState.setListingView.setPointSetType(name);
-    self.fetchAnnotation();
+    self.fetchAnnotation(imageName);
   },
 
   initializePointSetType: function(model, name) {
     appState.pointSets.model = model;
-    appState.pointSets.localStorage = new Backbone.LocalStorage("com.vietjtnguyen.annotator." + name);
+    // appState.pointSets.localStorage = new Backbone.LocalStorage("com.vietjtnguyen.annotator." + name);
   },
 
-  fetchAnnotation: function() {
+  fetchAnnotation: function(imageName) {
+
+    appState.currentImage.set("name", imageName);
+    appState.currentImage.urlRoot = baseApiUrl + "/api/image/name/";
+    appState.trigger("imageChanged");
 
     // Grab the application state if it was saved locally.
     appState.fetch({
@@ -187,42 +185,15 @@ var AppRouter = Backbone.Router.extend({
       // If no application state was retrieved then initialize one.
       error: function() {
         console.log("AppState not fetched, initializing.");
-
-        appState.currentImage.set({
-          id: "2008_000003",
-          width: 500,
-          height: 333,
-          url: "../example-data/images/2008_000003.jpg",
-          comment: ""
-        }).save();
-
-        // Setting the current image on the application state will trigger the
-        // current image model to fetch from the server and update.
-        appState.set("currentImage", "2008_000003");
-        appState.save();
       }
-    });
-
-    appState.pointSets.fetch({
-      appState: appState,
-      remove: true,
-      success: function() { console.log("points fetched"); },
-      error: function() { console.log("error fetching points"); }
-    });
-
-    appState.groups.fetch({
-      appState: appState,
-      remove: true,
-      success: function() { console.log("groups fetched"); },
-      error: function() { console.log("error fetching groups"); }
     });
 
   }
 
 });
 
-new AppRouter();
+var appRouter = new AppRouter();
 
-Backbone.history.start({
-  pushState: false,
-});
+if (!Backbone.history.start({pushState: true})) {
+  console.log("Could not find matching URL in router.");
+}

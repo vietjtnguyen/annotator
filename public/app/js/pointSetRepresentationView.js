@@ -190,7 +190,7 @@ var PointSetRepresentationView = Backbone.View.extend({
   renderSelection: function() {
     var self = this;
     if ( (self.appState.isInGroupMembershipMode() && self.model.get("group") === self.appState.get("selectedGroupId")) ||
-         (!self.appState.isInGroupMembershipMode() && self.model.get("id") === self.appState.get("selectedPointSetId")) ) {
+         (!self.appState.isInGroupMembershipMode() && self.model.get(self.model.idAttribute) === self.appState.get("selectedPointSetId")) ) {
       self.polySelection.classed("selected", true);
       self.fgPolySelection.style("stroke", "#00f");
     } else {
@@ -266,7 +266,7 @@ var PointSetRepresentationView = Backbone.View.extend({
     // TODO: Have a touch friendly method of deletion.
     if (d3.event.ctrlKey) {
       var points = self.model.get("points");
-      points.splice(points.indexOf(datum), 1);
+      points.splice(index, 1);
       self.model.trigger("change:points");
       self.model.save();
     }
@@ -282,9 +282,16 @@ var PointSetRepresentationView = Backbone.View.extend({
 
   handlePointDrag: function(domElement, datum, index) {
     var self = this;
-    datum.x = d3.event.x;
-    datum.y = d3.event.y;
+
+    // We modify the point *in-place* which won't trigger a change event so we
+    // trigger one manually after. Another way to do this is to get the point
+    // array, modify it, and the set it again.
+    var point = self.model.get("points")[index];
+    point.x = d3.event.x;
+    point.y = d3.event.y;
     self.model.trigger("change:points");
+
+    // Update the actual dot representation.
     d3.select(domElement).attr("cx", datum.x).attr("cy", datum.y);
   },
 

@@ -1,20 +1,15 @@
-// Standard library requires.
 var path = require("path");
 
-// These are the fancy schmancy dependencies that make the world go round.
 var express = require("express");
 
-// Make our application instance.
 var app = express();
 
-// Require some fancy middleware.
 var logger = require("morgan");
 var cookieParser = require("cookie-parser");
 var bodyParser = require("body-parser");
 
 app.set("view options", {layout: false});
 
-// Attach said fancy middleware to the application.
 app.use(logger("dev"));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded());
@@ -22,12 +17,14 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
 var mongoose   = require("mongoose");
-// mongoose.connect(process.env.MONGOLAB_URI);
-mongoose.connect("mongodb://localhost/annotator");
+mongoose.connect("mongodb://127.0.0.1/annotator");
+
+// Statically serve the images.
+app.use("/image", express.static(path.join(__dirname, "./public/image")));
 
 // Attach our middleware to the app.
-app.use("/", require("./routes/index"));
 app.use("/api", require("./routes/api"));
+app.use("/", require("./routes/application"));
 
 // If we've gotten here then none of the above "middleware" returned a
 // response. We have no more middleware below to do any work so we"ve hit a

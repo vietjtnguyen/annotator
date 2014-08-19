@@ -38,14 +38,15 @@ var PointSetListView = Backbone.View.extend({
   addItem: function() {
     var self = this;
 
+    // Note that we have to add it to the point set collection before we call
+    // save so that the model can adopt the URL of the collection.
     var newPointSet = new self.appState.pointSets.model({}, {appState: self.appState});
+    self.appState.pointSets.add(newPointSet);
     newPointSet.save({}, {
       success: function() {
         appState.set("selectedPointSetId", newPointSet.get("id"));
       }
     });
-
-    self.appState.pointSets.add(newPointSet);
   },
 
   addItemView: function(newPointSet) {

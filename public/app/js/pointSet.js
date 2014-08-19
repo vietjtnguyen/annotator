@@ -5,12 +5,12 @@
 // should be considered abstract and not instantiated.
 var PointSet = Backbone.Model.extend({
 
-  localStorage: new Backbone.LocalStorage("com.vietjtnguyen.annotator.PointSet"),
+  idAttribute: "_id",
 
   // Make sure that the point set starts off with an empty array of points.
   defaults: {
-    description: null,
-    group: null,
+    description: "",
+    group: "",
     points: []
   },
 
@@ -36,7 +36,7 @@ var PointSet = Backbone.Model.extend({
 
   removeSelection: function() {
     var self = this;
-    if (self.appState.get("selectedPointSetId") == self.get("id")) {
+    if (self.appState.get("selectedPointSetId") == self.get(self.idAttribute)) {
       self.appState.set("selectedPointSetId", "");
     }
   },
@@ -65,7 +65,7 @@ var PointSet = Backbone.Model.extend({
       }
       self.save();
     } else {
-      self.appState.set("selectedPointSetId", !force && self.appState.get("selectedPointSetId") === self.get("id") ? "" : self.get("id"));
+      self.appState.set("selectedPointSetId", !force && self.appState.get("selectedPointSetId") === self.get(self.idAttribute) ? "" : self.get(self.idAttribute));
       self.appState.save();
     }
   }
@@ -76,8 +76,6 @@ var PointSet = Backbone.Model.extend({
 // is enforced with the `validate` function and communicated to the application
 // via `isFull`.
 var SinglePoint = PointSet.extend({
-
-  localStorage: new Backbone.LocalStorage("com.vietjtnguyen.annotator.SinglePoint"),
 
   validate: function() {
     var self = this;
@@ -122,8 +120,6 @@ var Line = PointsBasedPointSet .extend({
   
   svgElement: "polyline",
 
-  localStorage: new Backbone.LocalStorage("com.vietjtnguyen.annotator.Line"),
-
   validate: function() {
     var self = this;
     if (self.get("points").length > 2) {
@@ -132,7 +128,6 @@ var Line = PointsBasedPointSet .extend({
   },
 
   isFull: function() {
-    console.log("right");
     var self = this;
     return self.get("points").length >= 2;
   },
@@ -147,8 +142,6 @@ var Line = PointsBasedPointSet .extend({
 // points in order and not closing the path via a connection from the last
 // point to the first point.
 var PolyLine = PointsBasedPointSet .extend({
-  
-  localStorage: new Backbone.LocalStorage("com.vietjtnguyen.annotator.PolyLine"),
 
   appendSvgElement: function(d3Selection) {
     return d3Selection.append("polyline");
@@ -160,8 +153,6 @@ var PolyLine = PointsBasedPointSet .extend({
 // in order and closing the path via a connection from the last point to the
 // first point.
 var Polygon = PointsBasedPointSet .extend({
-
-  localStorage: new Backbone.LocalStorage("com.vietjtnguyen.annotator.Polygon"),
 
   appendSvgElement: function(d3Selection) {
     return d3Selection.append("polygon");

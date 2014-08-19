@@ -8,7 +8,6 @@ var WorkingAreaView = Backbone.View.extend({
     
     // If the current image changes somehow then we'll want to rerender the
     // image element in the working area's SVG.
-    self.listenTo(self.appState, "change:currentImage", self.renderImage);
     self.listenTo(self.appState.currentImage, "change", self.renderImage);
 
     // If the background state changes then rerender the background.

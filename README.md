@@ -111,17 +111,24 @@ API
 ---
 
 /parallel-families
-/parallel-families/trainval
-/parallel-families/trainval/2008_000003
+/parallel-families/2008_000003
+/parallel-families/set
+/parallel-families/set/trainval
+/parallel-families/set/trainval/1
+/api/image
 /api/image/53f124db538701254c0bdb79
-/api/parallel-familes
-/api/parallel-familes/2008_000003
-/api/parallel-familes/2008_000003/group
-/api/parallel-familes/2008_000003/point-set
-/api/parallel-familes/2008_000003/point-set/53f124db538701254c0bdb79
+/api/parallel-families
+/api/parallel-families/set
+/api/parallel-families/set/trainval
+/api/parallel-families/2008_000003
+/api/parallel-families/2008_000003/group
+/api/parallel-families/2008_000003/point-set
+/api/parallel-families/2008_000003/point-set/53f124db538701254c0bdb79
 
-/{annotation_name}/{set_name}
-/{annotation_name}/{set_name}/{image_name}
+/{annotation_name}/{image_name}
+/{annotation_name}/set/{set_name}
+/{annotation_name}/set/{set_name}/{image_index}
+/image
 /api
 /api/image/{image_id}
 /api/{annotation_name}
@@ -165,8 +172,16 @@ Helpful Links
 - https://togetherjs.com/
 - https://flask-login.readthedocs.org/en/latest/
 - http://expressjs.com/4x/api.html
+- http://expressjs.com/api#req.params
 - http://blog.modulus.io/nodejs-and-sqlite
 - https://code.google.com/p/restful-sqlite/source/browse/web.py
 - http://scotch.io/tutorials/javascript/build-a-restful-api-using-node-and-express-4
 - http://mongoosejs.com/docs/guide.html
+- http://mongoosejs.com/docs/schematypes.html
+- http://mongoosejs.com/docs/api.html#model_Model.findOne
+- http://mongoosejs.com/docs/api.html#model_Model.populate
 - http://www.getpostman.com/
+- http://css-tricks.com/snippets/javascript/get-url-and-url-parts-in-javascript/
+- http://docs.mongodb.org/manual/reference/operator/query/in/
+- http://underscorejs.org/#each
+- http://underscorejs.org/#pluck

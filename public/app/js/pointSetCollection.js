@@ -4,8 +4,6 @@
 // image's annotation is a collection of bounding boxes.
 var PointSetCollection = Backbone.Collection.extend({
 
-  localStorage: new Backbone.LocalStorage("com.vietjtnguyen.annotator.PointSet"),
-
   model: Line,
 
   initialize: function(models, options) {
