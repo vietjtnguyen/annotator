@@ -11,7 +11,7 @@ var pointSetSchema = new Schema({
 });
 
 pointSetSchema.statics.findByAnnotationImage = function(annotation, image, callback) {
-  this.find({annotation: annotation, image: image}, callback);
+  return this.find({annotation: annotation, image: image}, callback);
 };
 
 module.exports = mongoose.model("PointSet", pointSetSchema);

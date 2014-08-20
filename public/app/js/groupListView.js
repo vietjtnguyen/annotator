@@ -17,14 +17,15 @@ var GroupListView = Backbone.View.extend({
   addItem: function() {
     var self = this;
 
+    // Note that we have to add it to the collection before we call save so
+    // that the model can adopt the URL of the collection.
     var newGroup = new Group({}, {appState: self.appState});
+    self.appState.groups.add(newGroup);
     newGroup.save({
       success: function() {
         appState.set("selectedModelId", newGroup.get("id"));
       }
     });
-
-    self.appState.groups.add(newGroup);
   },
 
   addItemView: function(newGroup) {

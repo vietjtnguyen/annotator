@@ -3,6 +3,7 @@ var baseApiUrl = window.location.protocol + "//" + window.location.host;
 
 ////////////////////////////////////////////////////////////////////////////////
 
+// TODO: Save an app state per annotation/image pair?
 // This model represents the application state and doubly serves as the root
 // namespace for the application in the sense that point sets, views, and more
 // are attached to this model, but not as attributes.
@@ -41,6 +42,9 @@ var AppState = Backbone.Model.extend({
     // Establish the collection of groups. Like the collection of point sets,
     // this does not change across changes.
     self.groups = new GroupCollection([], {appState: self});
+
+    // TODO: If the group collection changes or resets then we want to reset
+    // the group selection if the current group selection is not available.
 
     // The utility box is used for various application wide settings.
     self.utilityBoxView = new UtilityBoxView({appState: self, el: $("#utilityBox")[0]});
@@ -81,9 +85,11 @@ var AppState = Backbone.Model.extend({
       .fetch({
         success: function() {
           self.pointSets.url = baseApiUrl + "/api/parallel-lines/" + self.currentImage.get("_id") + "/point-set/";
+          self.groups.url = baseApiUrl + "/api/parallel-lines/" + self.currentImage.get("_id") + "/group/";
           console.log("currentImage fetched");
           console.log(self.currentImage);
           console.log(self.pointSets.url);
+          console.log(self.groups.url);
 
           appState.pointSets.fetch({
             appState: appState,

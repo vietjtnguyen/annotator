@@ -110,18 +110,20 @@ Actions:
 API
 ---
 
-/parallel-families
-/parallel-families/2008_000003
+/parallel-families/53f124db538701254c0bdb79
+/parallel-families/name/2008_000002
 /parallel-families/set
 /parallel-families/set/trainval
 /parallel-families/set/trainval/1
 /api/image
 /api/image/53f124db538701254c0bdb79
+/api/image/name/2008_000002
 /api/parallel-families
 /api/parallel-families/set
 /api/parallel-families/set/trainval
 /api/parallel-families/2008_000003
 /api/parallel-families/2008_000003/group
+/api/parallel-families/2008_000003/group/53f124db538701254c0bdb79
 /api/parallel-families/2008_000003/point-set
 /api/parallel-families/2008_000003/point-set/53f124db538701254c0bdb79
 
@@ -135,6 +137,14 @@ API
 /api/{annotation_name}/{image_name}
 /api/{annotation_name}/{image_name}/pointset/{point_id}
 /api/{annotation_name}/{image_name}/group/{group_id}
+
+Adding Images to Database
+-------------------------
+
+```
+node imagePathToJson.bash public/image/pascal2010/trainval /image/pascal2010/trainval > image-models.json
+mongoimport -d annotator -c images --type json --jsonArray --file image-models.json
+```
 
 Helpful Links
 -------------
@@ -185,3 +195,7 @@ Helpful Links
 - http://docs.mongodb.org/manual/reference/operator/query/in/
 - http://underscorejs.org/#each
 - http://underscorejs.org/#pluck
+- https://github.com/NV/objectDiff.js
+- https://github.com/benjamine/jsondiffpatch
+- https://github.com/nilbus/Backbone.dualStorage
+

@@ -3,8 +3,8 @@
 // to point sets. However, we make a model anyway because we want to store them
 // in collections since the user can add and remove groups.
 var Group = Backbone.Model.extend({
-
-  localStorage: new Backbone.LocalStorage("com.vietjtnguyen.annotator.Group"),
+  
+  idAttribute: "_id",
 
   initialize: function(attributes, options) {
     var self = this;
@@ -24,7 +24,7 @@ var Group = Backbone.Model.extend({
 
   removeSelection: function() {
     var self = this;
-    if (self.appState.get("selectedGroupId") == self.get("id")) {
+    if (self.appState.get("selectedGroupId") == self.get(self.idAttribute)) {
       self.appState.set("selectedGroupId", "");
     }
   }

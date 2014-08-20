@@ -5,6 +5,7 @@ var router = express.Router();
 
 var ImageModel = require("../models/image");
 var PointSetModel = require("../models/pointSet");
+var GroupModel = require("../models/group");
 
 
 
@@ -180,6 +181,69 @@ router.route("/:annotationName/:imageId/point-set/:pointSetId")
   })
   .delete(function(request, response) {
     PointSetModel.remove({_id: request.params.pointSetId}, function(error, pointSet) {
+      if (error) {
+        response.send(error);
+      }
+      response.json({message: "successfully deleted"});
+    });
+  });
+
+
+
+function updateGroupWithRequest(group, request) {
+  group.annotation = request.params.annotationName;
+  group.image = request.params.imageId;
+  group.description = request.body.description;
+}
+
+router.route("/:annotationName/:imageId/group")
+  .post(function(request, response) {
+    var group = new GroupModel();
+    updateGroupWithRequest(group, request);
+    group.save(function(error) {
+      if (error) {
+        response.send(error);
+      }
+      response.json(group);
+    });
+  })
+  .get(function(request, response) {
+    GroupModel.find({
+      annotation: request.params.annotationName,
+      image: request.params.imageId
+    }, function(error, pointSets) {
+      if (error) {
+        response.send(error);
+      }
+      response.json(pointSets);
+    });
+  });
+
+router.route("/:annotationName/:imageId/group/:groupId")
+  .get(function(request, response) {
+    GroupModel.findById(request.params.groupId, function(error, group) {
+      if (error) {
+        response.send(error);
+      }
+      response.json(group);
+    });
+  })
+  .put(function(request, response) {
+    GroupModel.findById(request.params.groupId, function(error, group) {
+      if (error) {
+        response.send(error);
+      }
+      updateGroupWithRequest(group, request);
+      group.save(function(error) {
+        if (error) {
+          response.send(error);
+        }
+        response.json(group);
+      });
+    });
+  })
+  .delete(function(request, response) {
+    GroupModel.remove({_id: request.params.groupId}, function(error, group) {
       if (error) {
         response.send(error);
       }

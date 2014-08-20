@@ -52,7 +52,7 @@ var GroupListItemView = Backbone.View.extend({
 
   renderId: function() {
     var self = this;
-    self.$el.attr("id", self.model.get("id"));
+    self.$el.attr("id", self.model.get(self.model.idAttribute));
   },
 
   renderText: function() {
@@ -63,7 +63,7 @@ var GroupListItemView = Backbone.View.extend({
 
   renderSelection: function() {
     var self = this;
-    if (self.model.get("id") === self.appState.get("selectedGroupId")) {
+    if (self.model.get(self.model.idAttribute) === self.appState.get("selectedGroupId")) {
       self.$el.addClass("active");
     } else {
       self.$el.removeClass("active");
@@ -72,7 +72,7 @@ var GroupListItemView = Backbone.View.extend({
 
   selectSelf: function() {
     var self = this;
-    self.appState.set("selectedGroupId", self.appState.get("selectedGroupId") === self.model.get("id") ? "" : self.model.get("id"));
+    self.appState.set("selectedGroupId", self.appState.get("selectedGroupId") === self.model.get(self.model.idAttribute) ? "" : self.model.get(self.model.idAttribute));
     self.appState.save();
   },
 
