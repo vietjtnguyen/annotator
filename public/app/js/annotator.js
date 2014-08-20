@@ -3,16 +3,14 @@ var baseApiUrl = window.location.protocol + "//" + window.location.host;
 
 ////////////////////////////////////////////////////////////////////////////////
 
-// TODO: Save an app state per annotation/image pair?
 // This model represents the application state and doubly serves as the root
 // namespace for the application in the sense that point sets, views, and more
 // are attached to this model, but not as attributes.
 var AppState = Backbone.Model.extend({
 
-  localStorage: new Backbone.LocalStorage("com.vietjtnguyen.annotator.AppState"),
+  localStorage: new Backbone.LocalStorage("annotator-appstate"),
 
   defaults: {
-    id: 0,
     selectedPointSetId: "",
     selectedGroupId: "",
     background: "light",
@@ -177,6 +175,7 @@ var AppRouter = Backbone.Router.extend({
 
   fetchAnnotation: function(imageName) {
 
+    appState.set("id", "parallel-lines-"+imageName);
     appState.currentImage.set("name", imageName);
     appState.currentImage.urlRoot = baseApiUrl + "/api/image/name/";
     appState.trigger("imageChanged");

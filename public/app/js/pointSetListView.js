@@ -1,6 +1,7 @@
 var PointSetListView = Backbone.View.extend({
 
   events: {
+    "click #togglePointSetsButton": "toggleList",
     // If the add button is clicked then add a new point set!
     "click #addPointSetButton": "addItem"
   },
@@ -35,6 +36,11 @@ var PointSetListView = Backbone.View.extend({
     self.$("#addText").text("Add " + self._pointSetType);
   },
 
+  toggleList: function() {
+    var self = this;
+    self.$("#lineListing").toggle("blind");
+  },
+
   addItem: function() {
     var self = this;
 
@@ -44,7 +50,7 @@ var PointSetListView = Backbone.View.extend({
     self.appState.pointSets.add(newPointSet);
     newPointSet.save({}, {
       success: function() {
-        appState.set("selectedPointSetId", newPointSet.get("id"));
+        self.appState.set("selectedPointSetId", newPointSet.get(newPointSet.idAttribute));
       }
     });
   },

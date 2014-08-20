@@ -33,10 +33,7 @@
 
   <div id="toolPane">
     <div id="imageControlSection">
-      <p class="btn-group btn-group-sm" style="width: 100%;">
-        <button id="saveImageButton" class="btn btn-default" style="width: 50%;"><span class="glyphicon glyphicon-save"></span> Save</button>
-        <button id="openImageButton" class="btn btn-default" style="width: 50%;"><span class="glyphicon glyphicon-open"></span> Open</button>
-      </p>
+      <h4>Set Navigation</h4>
       <p class="input-group input-group-sm">
         <input type="text" class="form-control" value="12345"></input>
         <span class="input-group-btn">
@@ -47,7 +44,7 @@
       </p>
     </div>
     <div id="groupSection">
-      <h3>Groups</h3>
+      <h4>Groups</h4>
       <p>
         <button id="addGroupButton" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-plus"></span> Add Group</button>
         <button id="toggleGroupsButton" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-sort"></span></button>
@@ -56,7 +53,7 @@
       </div>
     </div>
     <div id="pointSetSection">
-      <h3>Lines</h3>
+      <h4>Lines</h4>
       <p>
         <button id="addPointSetButton" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-plus"></span> <span id="addText">Add Line</span></button>
         <button id="togglePointSetsButton" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-sort"></span></button>
@@ -118,17 +115,6 @@
   <script type="text/javascript" src="js/utilityBoxView.js"></script>
 
   <script type="text/javascript" src="js/annotator.js"></script>
-
-  <script type="text/javascript">
-    $(function() {
-      $("#togglePointSetsButton").click(function() {
-        $("#lineListing").toggle("blind");
-      });
-      $("#toggleGroupsButton").click(function() {
-        $("#groupListing").toggle("blind");
-      });
-    });
-  </script>
 
 </body>
 

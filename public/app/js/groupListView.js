@@ -1,6 +1,7 @@
 var GroupListView = Backbone.View.extend({
 
   events: {
+    "click #toggleGroupsButton": "toggleList",
     // If the add button is clicked then add a new group!
     "click #addGroupButton": "addItem"
   },
@@ -14,6 +15,12 @@ var GroupListView = Backbone.View.extend({
     self.listenTo(self.appState.groups, "add", self.addItemView);
   },
 
+  toggleList: function() {
+    var self = this;
+    self.$("#groupListing").toggle("blind");
+    self.appState.set("selectedGroupId", "");
+  },
+
   addItem: function() {
     var self = this;
 
@@ -23,7 +30,7 @@ var GroupListView = Backbone.View.extend({
     self.appState.groups.add(newGroup);
     newGroup.save({
       success: function() {
-        appState.set("selectedModelId", newGroup.get("id"));
+        self.appState.set("selectedGroupId", newGroup.get(newGroup.idAttribute));
       }
     });
   },

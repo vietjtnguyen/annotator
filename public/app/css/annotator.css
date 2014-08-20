@@ -31,6 +31,7 @@ a {
   right: 0px;
   top: 0px;
   padding: 10px;
+  padding-top: 0px;
   background: rgba(255, 255, 255, 0.9);
   overflow-y: scroll;
   width: 200px;
