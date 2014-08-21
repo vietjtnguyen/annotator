@@ -26,6 +26,46 @@ Objects: two points in a set (bounding box), sets assigned a class (type in, Wor
 Pose: n (predetermined) points, each a (predetermined) class, lines drawn according to (predetermined) relationship
 Parts: n points in a set (polygon), sets assigned a class (type in, WordNet autocomplete), sets assigned a parent set (optional)
 
+Installation
+============
+
+## Install Node.js
+
+1. Go to [http://nodejs.org/](http://nodejs.org/), download the [install file](http://nodejs.org/dist/v0.10.31/node-v0.10.31.tar.gz)
+2. Unpack with `tar zxvf node-v0.10.31.tar.gz`
+3. `cd node-v0.10.31`
+4. `./configure`
+5. `make`
+6. `sudo make install`
+  - You might get a complaint while installing the `man` page: `OSError: [Errno 20] Not a directory: '/usr/local/share/man/man1/node.1'`. I simply did `sudo mv /usr/local/share/man/man1 /usr/local/share/man/man1.backup`.
+
+## Install MongoDB
+
+Follow the [instructions for installing on Ubuntu](http://docs.mongodb.org/manual/tutorial/install-mongodb-on-ubuntu/), reproduced below.
+
+1. `sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 7F0CEB10`
+2. `echo 'deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen' | sudo tee /etc/apt/sources.list.d/mongodb.list`
+3. `sudo apt-get update`
+4. `sudo apt-get install mongodb-org`
+5. `sudo service mongod start`
+6. Wait a bit and then verify that the installation succeeded and the serviced started by running `mongo`. That will take you into a Mongo command-line interface where you can run `show dbs` which should return
+
+```
+admin  (empty)
+local  0.078GB
+```
+
+## Install Annotator
+
+1. Clone the Annotator repository: `git clone https://github.com/vietjtnguyen/annotator.git`
+2. `cd annotator`
+3. Install Node dependencies. `npm install`
+4. Start the server. `npm start`
+
+## Install Dataset
+
+
+
 Developer Stuff
 ===============
 
@@ -198,4 +238,4 @@ Helpful Links
 - https://github.com/NV/objectDiff.js
 - https://github.com/benjamine/jsondiffpatch
 - https://github.com/nilbus/Backbone.dualStorage
-
+- http://thatextramile.be/blog/2012/01/hosting-a-node-js-site-through-apache
