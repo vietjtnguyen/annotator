@@ -2,29 +2,32 @@ Annotator
 =========
 
 Annotator is a back and front end solution for performing annotation of images
-with discrete objects (e.g. points, lines, circles, polygons, polylines, etc.).
-The back end involves a data model for images and a user defined data model for
-annotations stored using SQLite3 served as a RESTful service via Python/Django.
-The front end involves a single-page application built using HTML/CSS/JS/SVG.
-Specifically it uses Backbone.js to manage data model synchrony with the back
-end and d3.js for visualization and control.
+with discrete objects (e.g. points, lines, circles, polygons, polylines,
+bounding boxes, etc.).  A data abstraction for discrete annotations based on
+point sets is stored using [MongoDB](http://www.mongodb.org/). The data and the
+application is served using [Node.js](http://nodejs.org/) and
+[Mongoose](http://mongoosejs.com/). The front end application is a single-page
+application built using HTML/CSS, Javascript, and SVG. Specifically it uses
+[Backbone.js](http://backbonejs.org/) for synchronization with the database and
+interface control while visualizing the actual annotations using SVG and
+[D3.js](http://d3js.org/).
 
 Annotation Types
 ----------------
 
-Line: two points, sets assigned a group
-PolyLine: n points
-Polygon: n points
-BoundingBox: 2 points, sets assigned a class
-Pose: n points, each assigned a class
-Skeleton: n predetermined points, each point
+- Line: two points, sets assigned a group
+- PolyLine: n points
+- Polygon: n points
+- BoundingBox: 2 points, sets assigned a class
+- Pose: n points, each assigned a class
+- Skeleton: n predetermined points, each point
 
-Parallel Families: two points in a set, sets assigned a group, groups manageable
-Edges: n points in a set (polyline)
-Segmentation: n points in a set (polygon), sets assigned a class (type in, WordNet autocomplete)
-Objects: two points in a set (bounding box), sets assigned a class (type in, WordNet autocomplete)
-Pose: n (predetermined) points, each a (predetermined) class, lines drawn according to (predetermined) relationship
-Parts: n points in a set (polygon), sets assigned a class (type in, WordNet autocomplete), sets assigned a parent set (optional)
+- Parallel Families: two points in a set, sets assigned a group, groups manageable
+- Edges: n points in a set (polyline)
+- Segmentation: n points in a set (polygon), sets assigned a class (type in, WordNet autocomplete)
+- Objects: two points in a set (bounding box), sets assigned a class (type in, WordNet autocomplete)
+- Pose: n (predetermined) points, each a (predetermined) class, lines drawn according to (predetermined) relationship
+- Parts: n points in a set (polygon), sets assigned a class (type in, WordNet autocomplete), sets assigned a parent set (optional)
 
 Installation
 ============
@@ -64,7 +67,12 @@ local  0.078GB
 
 ## Install Dataset
 
+TODO
 
+```
+node imagePathToJson.bash public/image/pascal2010/trainval /image/pascal2010/trainval > image-models.json
+mongoimport -d annotator -c images --type json --jsonArray --file image-models.json
+```
 
 Developer Stuff
 ===============
@@ -150,41 +158,46 @@ Actions:
 API
 ---
 
-/parallel-families/53f124db538701254c0bdb79
-/parallel-families/name/2008_000002
-/parallel-families/set
-/parallel-families/set/trainval
-/parallel-families/set/trainval/1
-/api/image
-/api/image/53f124db538701254c0bdb79
-/api/image/name/2008_000002
-/api/parallel-families
-/api/parallel-families/set
-/api/parallel-families/set/trainval
-/api/parallel-families/2008_000003
-/api/parallel-families/2008_000003/group
-/api/parallel-families/2008_000003/group/53f124db538701254c0bdb79
-/api/parallel-families/2008_000003/point-set
-/api/parallel-families/2008_000003/point-set/53f124db538701254c0bdb79
+Generic end points:
 
-/{annotation_name}/{image_name}
-/{annotation_name}/set/{set_name}
-/{annotation_name}/set/{set_name}/{image_index}
-/image
-/api
-/api/image/{image_id}
-/api/{annotation_name}
-/api/{annotation_name}/{image_name}
-/api/{annotation_name}/{image_name}/pointset/{point_id}
-/api/{annotation_name}/{image_name}/group/{group_id}
+- `/{annotation_name}/{image_id}`
+- `/{annotation_name}/name/{image_name}`
+- `/{annotation_name}/set`
+- `/{annotation_name}/set/{set_name}`
+- `/{annotation_name}/set/{set_name}/{image_index}`
+- `/api`
+- `/api/image`
+- `/api/image/{image_id}`
+- `/api/image/name/{image_name}`
+- `/api/{annotation_name}`
+- `/api/{annotation_name}/set`
+- `/api/{annotation_name}/set/{set_id}`
+- `/api/{annotation_name}/set/name/{set_name}`
+- `/api/{annotation_name}/{image_id}`
+- `/api/{annotation_name}/{image_id}/group`
+- `/api/{annotation_name}/{image_id}/group/{group_id}`
+- `/api/{annotation_name}/{image_id}/point-set`
+- `/api/{annotation_name}/{image_id}/point-set/{point_id}`
 
-Adding Images to Database
--------------------------
+Specific end points (just examples):
 
-```
-node imagePathToJson.bash public/image/pascal2010/trainval /image/pascal2010/trainval > image-models.json
-mongoimport -d annotator -c images --type json --jsonArray --file image-models.json
-```
+- `/parallel-families/53f124db538701254c0bdb79`
+- `/parallel-families/name/2008_000002`
+- `/parallel-families/set`
+- `/parallel-families/set/trainval`
+- `/parallel-families/set/trainval/1`
+- `/api/image`
+- `/api/image/53f124db538701254c0bdb79`
+- `/api/image/name/2008_000002`
+- `/api/parallel-families`
+- `/api/parallel-families/set`
+- `/api/parallel-families/set/53f124db538701254c0bdb79`
+- `/api/parallel-families/set/name/trainval`
+- `/api/parallel-families/53f124db538701254c0bdb79`
+- `/api/parallel-families/53f124db538701254c0bdb79/group`
+- `/api/parallel-families/53f124db538701254c0bdb79/group/53f124db538701254c0bdb79`
+- `/api/parallel-families/53f124db538701254c0bdb79/point-set`
+- `/api/parallel-families/53f124db538701254c0bdb79/point-set/53f124db538701254c0bdb79`
 
 Helpful Links
 -------------
