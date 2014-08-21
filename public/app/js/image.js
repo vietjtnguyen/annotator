@@ -6,10 +6,13 @@ var Image = Backbone.Model.extend({
   idAttribute: "name",
 
   defaults: {
+    sha: "",
     name: "",
+    filename: "",
+    url: "",
     width: 0,
     height: 0,
-    url: ""
+    comment: ""
   }
 
 });

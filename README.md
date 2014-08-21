@@ -32,6 +32,8 @@ Annotation Types
 Installation
 ============
 
+The following instructions were tested on [Ubuntu 12.04 LTS](http://releases.ubuntu.com/12.04/).
+
 ## Install Node.js
 
 1. Go to [http://nodejs.org/](http://nodejs.org/), download the [install file](http://nodejs.org/dist/v0.10.31/node-v0.10.31.tar.gz)
@@ -73,6 +75,8 @@ TODO
 node imagePathToJson.bash public/image/pascal2010/trainval /image/pascal2010/trainval > image-models.json
 mongoimport -d annotator -c images --type json --jsonArray --file image-models.json
 ```
+
+Keep in mind that there is a 16 MB limit to `mongoimport` when using `--jsonArray` which the `install_dataset.bash` script uses.
 
 Developer Stuff
 ===============
@@ -252,3 +256,16 @@ Helpful Links
 - https://github.com/benjamine/jsondiffpatch
 - https://github.com/nilbus/Backbone.dualStorage
 - http://thatextramile.be/blog/2012/01/hosting-a-node-js-site-through-apache
+- http://stackoverflow.com/questions/6482377/bash-shell-script-check-input-argument/6482403#6482403
+- http://tldp.org/LDP/abs/html/internalvariables.html
+- http://stackoverflow.com/questions/965053/extract-filename-and-extension-in-bash
+- http://stackoverflow.com/questions/4045253/converting-relative-path-into-absolute-path
+- http://docs.mongodb.org/manual/reference/program/mongoimport/#cmdoption--upsert
+- http://unix.stackexchange.com/questions/77077/how-do-i-use-pushd-and-popd-commands/77081#77081
+- http://elderlab.yorku.ca/YorkUrbanDB/
+- http://stackoverflow.com/questions/21297903/rails-mongoid-parent-object-not-recognising-child-of-has-many-belongs-to-relati/21298840#21298840
+- http://docs.mongodb.org/manual/reference/mongodb-extended-json/#oid
+- http://www.imagemagick.org/script/escape.php
+- https://www.youtube.com/watch?v=lcUeothSPyc
+- http://releases.ubuntu.com/12.04/
+- http://docs.mongodb.org/manual/reference/program/mongoimport/#cmdoption--jsonArray
