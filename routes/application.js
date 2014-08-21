@@ -3,6 +3,7 @@ var path = require("path");
 var _ = require("underscore");
 
 var express = require("express");
+var jade = require("jade");
 var router = express.Router();
 
 var ImageModel = require("../models/image");
@@ -54,8 +55,16 @@ router.get("/:annotationName/report", function(request, response) {
 
 router.use("/:annotationName/:imageName", express.static(path.join(__dirname, "../public/app")));
 
+var imageListTemplate = jade.compileFile("templates/imageList.jade");
 router.get("/:annotationName", function(request, response) {
-  response.send("This should be a list of images and list of sets for annotation " + request.params.annotationName);
+  ImageModel.find().select("name").exec(function(error, images) {
+    if (error) {
+      response.send(error);
+    }
+    var locals = {};
+    locals.imageNames = _.sortBy(_.pluck(images, "name"), function(i) { return i; });
+    response.send(imageListTemplate(locals));
+  });
 });
 
 router.get("/", function(request, response) {

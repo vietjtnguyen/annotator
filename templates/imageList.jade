@@ -1,0 +1,10 @@
+doctype html
+html(lang="en")
+  head
+    title Parallel Lines: Images
+  body
+    h1 Images
+    ul
+      each imageName in imageNames
+        li
+          a(href="/parallel-lines/"+imageName)= imageName

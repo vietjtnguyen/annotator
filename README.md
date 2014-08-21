@@ -69,6 +69,8 @@ local  0.078GB
 
 ## Install Dataset
 
+1. Make sure ImageMagick is installed (needed for the `convert` command): `sudo apt-get install imagemagick`
+
 TODO
 
 ```
@@ -269,3 +271,7 @@ Helpful Links
 - https://www.youtube.com/watch?v=lcUeothSPyc
 - http://releases.ubuntu.com/12.04/
 - http://docs.mongodb.org/manual/reference/program/mongoimport/#cmdoption--jsonArray
+- http://jade-lang.com/
+- http://jade-lang.com/reference/
+- http://jade-lang.com/api/
+- http://jade-lang.com/command-line/
