@@ -6,7 +6,7 @@ var PointSetListItemView = Backbone.View.extend({
 
   events: {
     "click": "selectSelf",
-    "click .glyphicon-remove": "startPrettyDestroy",
+    "click .glyphicon-remove": "removeClick",
     "mouseover": "broadcastMouseOver",
     "mouseout": "broadcastMouseOut"
   },
@@ -96,6 +96,12 @@ var PointSetListItemView = Backbone.View.extend({
   selectSelf: function(jQueryEvent) {
     var self = this;
     self.model.selectSelf();
+  },
+
+  removeClick: function(jqueryEvent) {
+    var self = this;
+    jqueryEvent.stopPropagation();
+    self.startPrettyDestroy();
   },
 
   startPrettyDestroy: function() {

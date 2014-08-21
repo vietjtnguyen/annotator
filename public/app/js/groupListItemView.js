@@ -6,7 +6,7 @@ var GroupListItemView = Backbone.View.extend({
 
   events: {
     "click": "selectSelf",
-    "click .glyphicon-remove": "startPrettyRemoval"
+    "click .glyphicon-remove": "removeClick"
   },
 
   initialize: function(options) {
@@ -76,6 +76,12 @@ var GroupListItemView = Backbone.View.extend({
     self.appState.save();
   },
 
+  removeClick: function(jqueryEvent) {
+    var self = this;
+    jqueryEvent.stopPropagation();
+    self.startPrettyRemoval();
+  },
+
   startPrettyRemoval: function() {
     var self = this;
     // Trigger this event to notify others that removal has started.
@@ -94,7 +100,7 @@ var GroupListItemView = Backbone.View.extend({
           .style("margin-top", -origHeight+"px")
           .each("end", function() {
             // Model destruction also removes the model from the collection
-            // (PointSetCollection) that it is a part of.
+            // (GroupCollection) that it is a part of.
             self.model.destroy();
           });
       });

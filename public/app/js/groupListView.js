@@ -28,7 +28,10 @@ var GroupListView = Backbone.View.extend({
     // that the model can adopt the URL of the collection.
     var newGroup = new Group({}, {appState: self.appState});
     self.appState.groups.add(newGroup);
-    newGroup.save({
+
+    // Remember that the signature for `save` is `save([attributes],
+    // [options])`.
+    newGroup.save({}, {
       success: function() {
         self.appState.set("selectedGroupId", newGroup.get(newGroup.idAttribute));
       }

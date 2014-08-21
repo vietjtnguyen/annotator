@@ -38,6 +38,7 @@ var PointSet = Backbone.Model.extend({
     var self = this;
     if (self.appState.get("selectedPointSetId") == self.get(self.idAttribute)) {
       self.appState.set("selectedPointSetId", "");
+      self.appState.save();
     }
   },
 
