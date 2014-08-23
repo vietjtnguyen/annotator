@@ -12,8 +12,4 @@ var imageSchema = new Schema({
   comment: String
 });
 
-imageSchema.statics.findByName = function(name, callback) {
-  return this.findOne({name: name}, callback);
-};
-
 module.exports = mongoose.model("Image", imageSchema);

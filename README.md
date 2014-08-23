@@ -275,3 +275,4 @@ Helpful Links
 - http://jade-lang.com/reference/
 - http://jade-lang.com/api/
 - http://jade-lang.com/command-line/
+- https://leonard.io/blog/2012/05/installing-ruby-1-9-3-on-ubuntu-12-04-precise-pengolin/

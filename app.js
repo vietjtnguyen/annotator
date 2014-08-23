@@ -8,6 +8,7 @@ var logger = require("morgan");
 var cookieParser = require("cookie-parser");
 var bodyParser = require("body-parser");
 
+app.set("env", "development");
 app.set("view options", {layout: false});
 
 app.use(logger("dev"));
@@ -23,8 +24,13 @@ mongoose.connect("mongodb://127.0.0.1/annotator");
 app.use("/image", express.static(path.join(__dirname, "./public/image")));
 
 // Attach our middleware to the app.
-app.use("/api", require("./routes/api"));
-app.use("/", require("./routes/application"));
+var imageApiRoute = require("./routes/imageApi");
+var annotationApiRoute = require("./routes/annotationApi");
+var applicationRoute = require("./routes/application");
+
+app.use("/api/image", imageApiRoute);
+app.use("/api/parallel-lines", annotationApiRoute("parallel-lines"));
+app.use("/", applicationRoute);
 
 // If we've gotten here then none of the above "middleware" returned a
 // response. We have no more middleware below to do any work so we"ve hit a
