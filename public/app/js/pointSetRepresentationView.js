@@ -130,7 +130,7 @@ var PointSetRepresentationView = Backbone.View.extend({
       .attr("vector-effect", "non-scaling-stroke")
       .attr("r", 5)
       .attr("cx", function(d) { return d.x; })
-      .attr("cy", function(d) { return d.y; })
+      .attr("cy", function(d) { return d.y; }) // TODO: Add tablet support with offset here.
       .classed("point", true)
       .style({
         "opacity": 0,
@@ -292,7 +292,7 @@ var PointSetRepresentationView = Backbone.View.extend({
     self.model.trigger("change:points");
 
     // Update the actual dot representation.
-    d3.select(domElement).attr("cx", datum.x).attr("cy", datum.y);
+    d3.select(domElement).attr("cx", point.x).attr("cy", point.y); // TODO: Add tablet support with offset here.
   },
 
   handlePointDragEnd: function(domElement, datum, index) {

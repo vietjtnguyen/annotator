@@ -1,5 +1,6 @@
 // Establish API URL.
-var baseApiUrl = window.location.protocol + "//" + window.location.host;
+var rootUrl = "";
+var baseApiUrl = window.location.protocol + "//" + window.location.host + rootUrl;
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -102,6 +103,11 @@ var AppState = Backbone.Model.extend({
             success: function() { console.log("groups fetched"); },
             error: function() { console.log("error fetching groups"); }
           });
+        },
+        error: function() {
+          appState.pageAlert("danger", "Error while fetching image. Image \"" + self.currentImage.get("name") + "\" likely does not exist.");
+          self.stopListening();
+          // TODO: Disable interface elements.
         }
       });
   },
@@ -146,6 +152,14 @@ var AppState = Backbone.Model.extend({
       });
 
     }
+  },
+
+  pageAlertTemplate: _.template($("#alertTemplate").html()),
+  pageAlert: function(alertType, message) {
+    var self = this;
+    $("#alertSection").append(
+      $(self.pageAlertTemplate({alertType: alertType, message: message}))[0]
+    );
   }
 
 });
@@ -199,6 +213,11 @@ var AppRouter = Backbone.Router.extend({
 
 var appRouter = new AppRouter();
 
-if (!Backbone.history.start({pushState: true})) {
+var urlSuccessfullyMatched = Backbone.history.start({
+  root: rootUrl,
+  pushState: true
+});
+if (!urlSuccessfullyMatched) {
   console.log("Could not find matching URL in router.");
+  appState.pageAlert("danger", "Could not interpret the current URL.");
 }
