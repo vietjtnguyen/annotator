@@ -30,7 +30,14 @@ for IMAGE in $(cat $FOLDER.list)
   # http://www.imagemagick.org/script/escape.php
   convert $IMAGE_FILE -print "{\"sha\": \"$IMAGE_SHA\", \"name\": \"%t\", \"filename\": \"$IMAGE_FILE\", \"url\": \"$IMAGE_URL\", \"width\": %w, \"height\": %h, \"comment\": \"\"}, \n" /dev/null >> $FOLDER.json
 done
-echo "]" >> $FOLDER.json
+
+# Do more work than I'd like just to remove the last comma on the last entry to
+# make it legitimate JSON.
+# http://stackoverflow.com/questions/201782/can-you-use-a-trailing-comma-in-a-json-object
+head -c $(expr $(stat --format %s $FOLDER.json) - 3) $FOLDER.json > $FOLDER.2.json
+mv $FOLDER.2.json $FOLDER.json
+
+echo -e "\n]" >> $FOLDER.json
 
 # http://docs.mongodb.org/manual/reference/program/mongoimport/#cmdoption--upsert
 echo ""

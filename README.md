@@ -45,8 +45,7 @@ local  0.078GB
 
 1. Make sure ImageMagick is installed (needed for the `convert` command): `sudo apt-get install imagemagick`
 2. Place dataset (folder with images) in the `./dataset` folder. This isn't necessary but is recommended. Let's assume your folder is called `myDataset` (i.e. it is at `./dataset/myDataset`).
-3. Run `./install_dataset.bash public/image ./dataset/myDataset`.
-4. This script will `find` every `bmp`, `gif`, `jpg`, `jpeg`, `png`, `tif`, and `tiff` in your dataset folder. It then uses `convert` to get the width and height and `shasum` to get the SHA1 hash of the image file. This information including image name, file, and URL are saved as entries in the local Mongo database in the `annotator` database in the `images` collection. This save is done using `mongoimport`. Finally it creates a symlink in `./public/image` to the original image file. Images are served statically from `./public/image` and are named based on their SHA1 hash.
+3. Run `./install_dataset.bash public/image ./dataset/myDataset`. This script will `find` every `bmp`, `gif`, `jpg`, `jpeg`, `png`, `tif`, and `tiff` in your dataset folder. It then uses `convert` to get the width and height and `shasum` to get the SHA1 hash of the image file. This information including image name, file, and URL are saved as entries in the local Mongo database in the `annotator` database in the `images` collection. This save is done using `mongoimport`. Finally it creates a symlink in `./public/image` to the original image file. Images are served statically from `./public/image` and are named based on their SHA1 hash.
 
 Keep in mind that there is a 16 MB limit to `mongoimport` when using `--jsonArray` which the `install_dataset.bash` script uses. For reference, the JSON file for all PASCAL 2010 images (about 20k images) is 4.6 MB.
 
