@@ -1,33 +1,7 @@
 Annotator
 =========
 
-Annotator is a back and front end solution for performing annotation of images
-with discrete objects (e.g. points, lines, circles, polygons, polylines,
-bounding boxes, etc.).  A data abstraction for discrete annotations based on
-point sets is stored using [MongoDB](http://www.mongodb.org/). The data and the
-application is served using [Node.js](http://nodejs.org/) and
-[Mongoose](http://mongoosejs.com/). The front end application is a single-page
-application built using HTML/CSS, Javascript, and SVG. Specifically it uses
-[Backbone.js](http://backbonejs.org/) for synchronization with the database and
-interface control while visualizing the actual annotations using SVG and
-[D3.js](http://d3js.org/).
-
-Annotation Types
-----------------
-
-- Line: two points, sets assigned a group
-- PolyLine: n points
-- Polygon: n points
-- BoundingBox: 2 points, sets assigned a class
-- Pose: n points, each assigned a class
-- Skeleton: n predetermined points, each point
-
-- Parallel Families: two points in a set, sets assigned a group, groups manageable
-- Edges: n points in a set (polyline)
-- Segmentation: n points in a set (polygon), sets assigned a class (type in, WordNet autocomplete)
-- Objects: two points in a set (bounding box), sets assigned a class (type in, WordNet autocomplete)
-- Pose: n (predetermined) points, each a (predetermined) class, lines drawn according to (predetermined) relationship
-- Parts: n points in a set (polygon), sets assigned a class (type in, WordNet autocomplete), sets assigned a parent set (optional)
+Annotator is a back and front end solution for performing annotation of images with discrete objects (e.g. points, lines, circles, polygons, polylines, bounding boxes, etc.). A data abstraction for discrete annotations based on point sets is stored using [MongoDB](http://www.mongodb.org/). The data and the application is served using [Node.js](http://nodejs.org/), [ExpressJS](http://expressjs.com/) and [Mongoose](http://mongoosejs.com/). The front end application is a single-page application built using HTML/CSS, Javascript, and SVG. Specifically it uses [Backbone.js](http://backbonejs.org/) for synchronization with the database and interface control while visualizing the actual annotations using SVG and [D3.js](http://d3js.org/). Parts of the interface also utilize [jQuery](http://jquery.com/) and [jQuery UI](http://jqueryui.com/).
 
 Installation
 ============
@@ -70,18 +44,70 @@ local  0.078GB
 ## Install Dataset
 
 1. Make sure ImageMagick is installed (needed for the `convert` command): `sudo apt-get install imagemagick`
+2. Place dataset (folder with images) in the `./dataset` folder. This isn't necessary but is recommended. Let's assume your folder is called `myDataset` (i.e. it is at `./dataset/myDataset`).
+3. Run `./install_dataset.bash public/image ./dataset/myDataset`.
+4. This script will `find` every `bmp`, `gif`, `jpg`, `jpeg`, `png`, `tif`, and `tiff` in your dataset folder. It then uses `convert` to get the width and height and `shasum` to get the SHA1 hash of the image file. This information including image name, file, and URL are saved as entries in the local Mongo database in the `annotator` database in the `images` collection. This save is done using `mongoimport`. Finally it creates a symlink in `./public/image` to the original image file. Images are served statically from `./public/image` and are named based on their SHA1 hash.
 
-TODO
-
-```
-node imagePathToJson.bash public/image/pascal2010/trainval /image/pascal2010/trainval > image-models.json
-mongoimport -d annotator -c images --type json --jsonArray --file image-models.json
-```
-
-Keep in mind that there is a 16 MB limit to `mongoimport` when using `--jsonArray` which the `install_dataset.bash` script uses.
+Keep in mind that there is a 16 MB limit to `mongoimport` when using `--jsonArray` which the `install_dataset.bash` script uses. For reference, the JSON file for all PASCAL 2010 images (about 20k images) is 4.6 MB.
 
 Developer Stuff
 ===============
+
+TODO
+----
+
+- Set creation, modification, and support.
+- Undo/redo support.
+- Disabled mode for errors.
+- Documentation.
+- Support bounding boxes and object labeling.
+- Add more report end points and formats.
+- Add tablet support with handle offset.
+- Add setting to change root URL.
+
+API
+---
+
+Generic end points:
+
+- `/{annotation_name}/{image_id}`
+- `/{annotation_name}/name/{image_name}`
+- `/{annotation_name}/set`
+- `/{annotation_name}/set/{set_name}`
+- `/{annotation_name}/set/{set_name}/{image_index}`
+- `/api`
+- `/api/image`
+- `/api/image/{image_id}`
+- `/api/image/name/{image_name}`
+- `/api/{annotation_name}`
+- `/api/{annotation_name}/set`
+- `/api/{annotation_name}/set/{set_id}`
+- `/api/{annotation_name}/set/name/{set_name}`
+- `/api/{annotation_name}/{image_id}`
+- `/api/{annotation_name}/{image_id}/group`
+- `/api/{annotation_name}/{image_id}/group/{group_id}`
+- `/api/{annotation_name}/{image_id}/point-set`
+- `/api/{annotation_name}/{image_id}/point-set/{point_id}`
+
+Specific end points (just examples):
+
+- `/parallel-families/53f124db538701254c0bdb79`
+- `/parallel-families/name/2008_000002`
+- `/parallel-families/set`
+- `/parallel-families/set/trainval`
+- `/parallel-families/set/trainval/1`
+- `/api/image`
+- `/api/image/53f124db538701254c0bdb79`
+- `/api/image/name/2008_000002`
+- `/api/parallel-families`
+- `/api/parallel-families/set`
+- `/api/parallel-families/set/53f124db538701254c0bdb79`
+- `/api/parallel-families/set/name/trainval`
+- `/api/parallel-families/53f124db538701254c0bdb79`
+- `/api/parallel-families/53f124db538701254c0bdb79/group`
+- `/api/parallel-families/53f124db538701254c0bdb79/group/53f124db538701254c0bdb79`
+- `/api/parallel-families/53f124db538701254c0bdb79/point-set`
+- `/api/parallel-families/53f124db538701254c0bdb79/point-set/53f124db538701254c0bdb79`
 
 Event Flow
 ----------
@@ -161,50 +187,6 @@ Actions:
   - Group destruction triggers Group destroy event
   - GroupListItem responds to Group destroy event by removing self
 
-API
----
-
-Generic end points:
-
-- `/{annotation_name}/{image_id}`
-- `/{annotation_name}/name/{image_name}`
-- `/{annotation_name}/set`
-- `/{annotation_name}/set/{set_name}`
-- `/{annotation_name}/set/{set_name}/{image_index}`
-- `/api`
-- `/api/image`
-- `/api/image/{image_id}`
-- `/api/image/name/{image_name}`
-- `/api/{annotation_name}`
-- `/api/{annotation_name}/set`
-- `/api/{annotation_name}/set/{set_id}`
-- `/api/{annotation_name}/set/name/{set_name}`
-- `/api/{annotation_name}/{image_id}`
-- `/api/{annotation_name}/{image_id}/group`
-- `/api/{annotation_name}/{image_id}/group/{group_id}`
-- `/api/{annotation_name}/{image_id}/point-set`
-- `/api/{annotation_name}/{image_id}/point-set/{point_id}`
-
-Specific end points (just examples):
-
-- `/parallel-families/53f124db538701254c0bdb79`
-- `/parallel-families/name/2008_000002`
-- `/parallel-families/set`
-- `/parallel-families/set/trainval`
-- `/parallel-families/set/trainval/1`
-- `/api/image`
-- `/api/image/53f124db538701254c0bdb79`
-- `/api/image/name/2008_000002`
-- `/api/parallel-families`
-- `/api/parallel-families/set`
-- `/api/parallel-families/set/53f124db538701254c0bdb79`
-- `/api/parallel-families/set/name/trainval`
-- `/api/parallel-families/53f124db538701254c0bdb79`
-- `/api/parallel-families/53f124db538701254c0bdb79/group`
-- `/api/parallel-families/53f124db538701254c0bdb79/group/53f124db538701254c0bdb79`
-- `/api/parallel-families/53f124db538701254c0bdb79/point-set`
-- `/api/parallel-families/53f124db538701254c0bdb79/point-set/53f124db538701254c0bdb79`
-
 Helpful Links
 -------------
 
@@ -226,7 +208,6 @@ Helpful Links
 - http://stackoverflow.com/questions/18504235/understand-backbone-js-rest-calls
 - http://jstarrdewar.com/blog/2012/07/20/the-correct-way-to-override-concrete-backbone-methods/
 - https://github.com/mbostock/d3/wiki/Selections#animation--interaction
-  - The `this` context of an event callback in D3 is the DOM element.
 - http://stackoverflow.com/questions/19851171/nested-backbone-model-results-in-infinite-recursion-when-saving
 - http://stackoverflow.com/questions/6535948/nested-models-in-backbone-js-how-to-approach
 - http://stackoverflow.com/questions/1834642/best-practice-for-semicolon-after-every-function-in-javascript
@@ -276,3 +257,5 @@ Helpful Links
 - http://jade-lang.com/api/
 - http://jade-lang.com/command-line/
 - https://leonard.io/blog/2012/05/installing-ruby-1-9-3-on-ubuntu-12-04-precise-pengolin/
+- http://stackoverflow.com/questions/10472164/proper-handling-of-fetch-errors-for-mongoose
+- http://backbonejs.org/#Events-stopListening

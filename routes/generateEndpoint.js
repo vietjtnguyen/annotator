@@ -88,7 +88,7 @@ module.exports = function createEndpoint(endpoint) {
       });
       newModel.save(function(error) {
         if (error) {
-          response.send(error);
+          response.json(500, {error: "Error saving model.", message: error});
         }
         response.json(newModel);
       });
@@ -100,7 +100,9 @@ module.exports = function createEndpoint(endpoint) {
       });
       endpoint.Model.find(query, function(error, models) {
         if (error) {
-          response.send(error);
+          response.json(500, {error: "Error fetching models.", message: error});
+        } else if (!models) {
+          response.json(500, {error: "Error fetching models.", message: error});
         }
         response.json(models);
       });
@@ -115,7 +117,9 @@ module.exports = function createEndpoint(endpoint) {
       });
       endpoint.Model.findOne(query, function(error, model) {
         if (error) {
-          response.send(error);
+          response.json(500, {error: "Error fetching model.", message: error});
+        } else if (!model) {
+          response.json(500, {error: "Model does not exist."});
         }
         response.json(model);
       });
@@ -128,7 +132,9 @@ module.exports = function createEndpoint(endpoint) {
       });
       endpoint.Model.findOne(query, function(error, model) {
         if (error) {
-          response.send(error);
+          response.json(500, {error: "Error updating model.", message: error});
+        } else if (!model) {
+          response.json(500, {error: "Model does not exist."});
         }
         _.extend(model, endpoint.contextFields);
         _.extend(model, _.pick(request.body, endpoint.bodyFields));
@@ -151,7 +157,9 @@ module.exports = function createEndpoint(endpoint) {
       });
       endpoint.Model.remove(query, function(error, model) {
         if (error) {
-          response.send(error);
+          response.json(500, {error: "Error deleting model.", message: error});
+        } else if (!model) {
+          response.json(500, {error: "Model does not exist."});
         }
         response.json({message: "successfully deleted"});
       });

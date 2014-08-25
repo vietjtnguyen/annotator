@@ -28,8 +28,6 @@ module.exports = function(annotationName) {
     idField: {slug: "id", field: "_id"}
   }));
   
-  console.log("made it");
-  
   return router;
 
 };

@@ -1,12 +1,19 @@
 var path = require("path");
 
 var express = require("express");
-
-var app = express();
+var mongoose   = require("mongoose");
 
 var logger = require("morgan");
 var cookieParser = require("cookie-parser");
 var bodyParser = require("body-parser");
+
+var imageApiRoute = require("./routes/imageApi");
+var annotationApiRoute = require("./routes/annotationApi");
+var applicationRoute = require("./routes/application");
+
+mongoose.connect("mongodb://127.0.0.1/annotator");
+
+var app = express();
 
 app.set("env", "development");
 app.set("view options", {layout: false});
@@ -17,19 +24,9 @@ app.use(bodyParser.urlencoded());
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
-var mongoose   = require("mongoose");
-mongoose.connect("mongodb://127.0.0.1/annotator");
-
-// Statically serve the images.
-app.use("/image", express.static(path.join(__dirname, "./public/image")));
-
-// Attach our middleware to the app.
-var imageApiRoute = require("./routes/imageApi");
-var annotationApiRoute = require("./routes/annotationApi");
-var applicationRoute = require("./routes/application");
-
-app.use("/api/image", imageApiRoute);
 app.use("/api/parallel-lines", annotationApiRoute("parallel-lines"));
+app.use("/api/image", imageApiRoute);
+app.use("/image", express.static(path.join(__dirname, "./public/image")));
 app.use("/", applicationRoute);
 
 // If we've gotten here then none of the above "middleware" returned a

@@ -4,10 +4,11 @@ var _ = require("underscore");
 
 var express = require("express");
 var jade = require("jade");
-var router = express.Router();
 
 var ImageModel = require("../models/image");
 var PointSetModel = require("../models/pointSet");
+
+var router = express.Router();
 
 router.use("/:annotationName/set/:setName/:index", express.static(path.join(__dirname, "../public/app")));
 
