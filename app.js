@@ -8,6 +8,7 @@ var cookieParser = require("cookie-parser");
 var bodyParser = require("body-parser");
 
 var imageApiRoute = require("./routes/imageApi");
+var imageSetApiRoute = require("./routes/imageSetApi");
 var annotationApiRoute = require("./routes/annotationApi");
 var applicationRoute = require("./routes/application");
 
@@ -25,6 +26,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
 app.use("/api/parallel-lines", annotationApiRoute("parallel-lines"));
+app.use("/api/image-set", imageSetApiRoute);
 app.use("/api/image", imageApiRoute);
 app.use("/image", express.static(path.join(__dirname, "./public/image")));
 app.use("/", applicationRoute);

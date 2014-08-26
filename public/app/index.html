@@ -30,15 +30,17 @@
     <!-- <div> -->
     <!--   <button class="btn btn-default" onclick="TogetherJS(this); return false;">Collaborate!</button> -->
     <!-- </div> -->
-    <div id="imageControlSection">
+    <div id="imageSetControlSection">
       <h4>Set Navigation</h4>
       <p class="input-group input-group-sm">
-        <input type="text" class="form-control" value="12345"></input>
-        <span class="input-group-btn">
-          <button id="goImageButton" class="btn btn-default"><span class="glyphicon glyphicon-eject"></span></button>
-          <button id="prevImageButton" class="btn btn-default"><span class="glyphicon glyphicon-step-backward"></span></button>
-          <button id="nextImageButton" class="btn btn-default"><span class="glyphicon glyphicon-step-forward"></span></button>
-        </span>
+        <form id="imageSetForm">
+          <input id="imageSetIndex" type="text" class="form-control" value="12345"></input>
+          <span class="input-group-btn">
+            <button id="goImageButton" class="btn btn-default"><span class="glyphicon glyphicon-eject"></span></button>
+            <button id="prevImageButton" class="btn btn-default"><span class="glyphicon glyphicon-step-backward"></span></button>
+            <button id="nextImageButton" class="btn btn-default"><span class="glyphicon glyphicon-step-forward"></span></button>
+          </span>
+        </form>
       </p>
     </div>
     <div id="groupSection">
@@ -96,6 +98,7 @@
 
   <script type="text/javascript" src="js/point.js"></script>
   <script type="text/javascript" src="js/image.js"></script>
+  <script type="text/javascript" src="js/imageSet.js"></script>
 
   <script type="text/javascript" src="js/pointSet.js"></script>
   <script type="text/javascript" src="js/pointSetCollection.js"></script>
@@ -110,6 +113,7 @@
 
   <script type="text/javascript" src="js/workingAreaView.js"></script>
   <script type="text/javascript" src="js/utilityBoxView.js"></script>
+  <script type="text/javascript" src="js/imageSetControlView.js"></script>
 
   <script type="text/javascript" src="js/annotator.js"></script>
 

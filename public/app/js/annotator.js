@@ -4,6 +4,15 @@ var baseApiUrl = window.location.protocol + "//" + window.location.host + rootUr
 
 ////////////////////////////////////////////////////////////////////////////////
 
+// TODO: Move session specific settings in here (such as current image, current
+// image set, current image set index).
+var SessionState = Backbone.Model.extend({
+});
+
+// TODO: Move user specific settings in here (such as line color).
+var UserState = Backbone.Model.extend({
+});
+
 // This model represents the application state and doubly serves as the root
 // namespace for the application in the sense that point sets, views, and more
 // are attached to this model, but not as attributes.
@@ -30,6 +39,11 @@ var AppState = Backbone.Model.extend({
     // If the image changes then the ID is changed and a fetch performed.
     self.currentImage = new Image();
 
+    // Create the current image set. This model, like the above, doesn't get
+    // deleted or destroyed.
+    self.currentImageSet = new ImageSet();
+    self.currentImageSetIndex = 0;
+
     // Establish the collection of point sets. This collection itself does not
     // get deleted or destroyed. When point set type or annotation changes the
     // type is changed on this collection and data is refetched back into this
@@ -48,6 +62,8 @@ var AppState = Backbone.Model.extend({
     // The utility box is used for various application wide settings.
     self.utilityBoxView = new UtilityBoxView({appState: self, el: $("#utilityBox")[0]});
 
+    self.imageSetControlView = new ImageSetControlView({appState: self, el: $("#imageSetControlSection")[0]});
+
     // The working area view owns the point set visualizations. It is
     // responsible for acting as a parent for those visualizations along with
     // creating and adding them on point set collection add events.
@@ -63,11 +79,6 @@ var AppState = Backbone.Model.extend({
     // responsibilities except for groups instead of point sets.
     self.groupListingView = new GroupListView({appState: self, el: $("#groupSection")[0]});
 
-    // We want to the current image *model* to listen to changes in the
-    // `currentImage` attribute on the application state so that the current
-    // image model can update via a fetch accordingly.
-    self.listenTo(self, "imageChanged", self.refreshCurrentImage);
-
     // Have the point set listen to the working area view for any "canvas clicks"
     // to know when to add points to the selected point set.
     self.listenTo(self.workingAreaView, "workingAreaClick", self.addNewPoint);
@@ -76,40 +87,6 @@ var AppState = Backbone.Model.extend({
   isInGroupMembershipMode: function() {
     var self = this;
     return self.get("selectedGroupId") !== "";
-  },
-
-  refreshCurrentImage: function() {
-    var self = this;
-    self.currentImage
-      .fetch({
-        success: function() {
-          self.pointSets.url = baseApiUrl + "/api/parallel-lines/" + self.currentImage.get("_id") + "/point-set/";
-          self.groups.url = baseApiUrl + "/api/parallel-lines/" + self.currentImage.get("_id") + "/group/";
-          console.log("currentImage fetched");
-          console.log(self.currentImage);
-          console.log(self.pointSets.url);
-          console.log(self.groups.url);
-
-          appState.pointSets.fetch({
-            appState: appState,
-            remove: true,
-            success: function() { console.log("points fetched"); },
-            error: function() { console.log("error fetching points"); }
-          });
-
-          appState.groups.fetch({
-            appState: appState,
-            remove: true,
-            success: function() { console.log("groups fetched"); },
-            error: function() { console.log("error fetching groups"); }
-          });
-        },
-        error: function() {
-          appState.pageAlert("danger", "Error while fetching image. Image \"" + self.currentImage.get("name") + "\" likely does not exist.");
-          self.stopListening();
-          // TODO: Disable interface elements.
-        }
-      });
   },
 
   addNewPoint: function(mousePosition) {
@@ -171,43 +148,96 @@ var appState = new AppState();
 var AppRouter = Backbone.Router.extend({
 
   routes: {
+    "parallel-lines/:imageName": "parallelLinesDirect",
     "parallel-lines/:imageName/": "parallelLinesDirect",
+    "parallel-lines/set/:setName/:index": "parallelLinesSet",
     "parallel-lines/set/:setName/:index/": "parallelLinesSet"
   },
 
   parallelLinesDirect: function(imageName) {
     var self = this;
-    self.initializePointSetType(Line, "Line");
-    appState.setListingView.setPointSetType(name);
-    self.fetchAnnotation(imageName);
+
+    appState.pointSets.model = Line;
+    appState.setListingView.setPointSetType("Line");
   },
 
-  initializePointSetType: function(model, name) {
-    appState.pointSets.model = model;
-    // appState.pointSets.localStorage = new Backbone.LocalStorage("com.vietjtnguyen.annotator." + name);
-  },
 
-  fetchAnnotation: function(imageName) {
+  parallelLinesSet: function(setName, index) {
+    var self = this;
 
-    appState.set("id", "parallel-lines-"+imageName);
-    appState.currentImage.set("name", imageName);
-    appState.currentImage.urlRoot = baseApiUrl + "/api/image/name/";
-    appState.trigger("imageChanged");
+    // Make sure the index is an integer.
+    appState.currentImageSetIndex = parseInt(index);
+    if (!appState.currentImageSetIndex) {
+      appState.pageAlert("danger", "Image index is invalid.");
+      appState.stopListening();
+      return;
+    }
+    appState.imageSetControlView.render();
 
-    // Grab the application state if it was saved locally.
-    appState.fetch({
-      appState: appState,
+    appState.pointSets.model = Line;
+    appState.setListingView.setPointSetType("Line");
+
+    appState.currentImageSet.set("name", setName);
+    appState.currentImageSet.urlRoot = baseApiUrl + "/api/image-set/name";
+    appState.currentImageSet.fetch({
       success: function() {
-        console.log("AppState fetched.");
-      },
 
-      // If no application state was retrieved then initialize one.
+        var imageIds = appState.currentImageSet.get("imageIds");
+
+        if (appState.currentImageSetIndex < 1 || appState.currentImageSetIndex > imageIds.length) {
+          appState.pageAlert("danger", "Image index is out of range.");
+          appState.stopListening();
+          return;
+        }
+
+        var imageId = imageIds[appState.currentImageSetIndex];
+        appState.currentImage.idAttribute = "_id";
+        appState.currentImage.set("_id", imageId);
+        appState.currentImage.urlRoot = baseApiUrl + "/api/image/";
+
+        appState.currentImage.fetch({
+          success: function() {
+
+            appState.set("id", "parallel-lines-" + appState.currentImage.get("name"));
+            appState.fetch({
+              appState: appState,
+              success: function() {
+              },
+              error: function() {
+                appState.utilityBoxView.resetView();
+              }
+            });
+
+          },
+          error: function() {
+            appState.pageAlert("danger", "Error while fetching image. Image \"" + appState.currentImage.get("_id") + "\" likely does not exist.");
+            appState.stopListening();
+          }
+        });
+
+        appState.pointSets.url = baseApiUrl + "/api/parallel-lines/" + appState.currentImage.get("_id") + "/point-set/";
+        appState.groups.url = baseApiUrl + "/api/parallel-lines/" + appState.currentImage.get("_id") + "/group/";
+
+        appState.pointSets.fetch({
+          appState: appState,
+          remove: true,
+          success: function() { console.log("points fetched"); },
+          error: function() { console.log("error fetching points"); }
+        });
+
+        appState.groups.fetch({
+          appState: appState,
+          remove: true,
+          success: function() { console.log("groups fetched"); },
+          error: function() { console.log("error fetching groups"); }
+        });
+      },
       error: function() {
-        console.log("AppState not fetched, initializing.");
+        appState.pageAlert("danger", "Error while fetching image set. Image set \"" + appState.currentImageSet.get("name") + "\" likely does not exist.");
+        appState.stopListening();
       }
     });
-
-  }
+  },
 
 });
 

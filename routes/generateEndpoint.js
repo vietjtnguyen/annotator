@@ -56,6 +56,7 @@ module.exports = function createEndpoint(endpoint) {
   // Fill in any undefined endpoint definition fields.
   // <http://underscorejs.org/#defaults>
   endpoint = _.defaults(endpoint, {
+    readOnly: false,
     contextFields: {},
     bodyFields: [],
     parentFields: [],
@@ -78,22 +79,9 @@ module.exports = function createEndpoint(endpoint) {
   // Create our Express router that will be our middleware.
   var router = express.Router();
 
-  router.route(collectionUrl)
-    .post(function(request, response) {
-      var newModel = new endpoint.Model();
-      _.extend(newModel, endpoint.contextFields);
-      _.extend(newModel, _.pick(request.body, endpoint.bodyFields));
-      endpoint.parentFields.forEach(function(parentField) {
-        newModel[parentField.field] = request.params[parentField.slug];
-      });
-      newModel.save(function(error) {
-        if (error) {
-          response.json(500, {error: "Error saving model.", message: error});
-        }
-        response.json(newModel);
-      });
-    })
-    .get(function(request, response) {
+  var collectionRouter = router.route(collectionUrl);
+
+  collectionRouter.get(function(request, response) {
       var query = {};
       endpoint.parentFields.forEach(function(parentField) {
         query[parentField.field] = request.params[parentField.slug];
@@ -108,23 +96,46 @@ module.exports = function createEndpoint(endpoint) {
       });
     });
 
-  router.route(itemUrl)
-    .get(function(request, response) {
-      var query = {};
-      query[endpoint.idField.field] = request.params[endpoint.idField.slug];
+  if (!endpoint.readOnly) {
+
+    collectionRouter.post(function(request, response) {
+      var newModel = new endpoint.Model();
+      _.extend(newModel, endpoint.contextFields);
+      _.extend(newModel, _.pick(request.body, endpoint.bodyFields));
       endpoint.parentFields.forEach(function(parentField) {
-        query[parentField.field] = request.params[parentField.slug];
+        newModel[parentField.field] = request.params[parentField.slug];
       });
-      endpoint.Model.findOne(query, function(error, model) {
+      newModel.save(function(error) {
         if (error) {
-          response.json(500, {error: "Error fetching model.", message: error});
-        } else if (!model) {
-          response.json(500, {error: "Model does not exist."});
+          response.json(500, {error: "Error saving model.", message: error});
         }
-        response.json(model);
+        response.json(newModel);
       });
-    })
-    .put(function(request, response) {
+    });
+
+  }
+
+  var itemRouter = router.route(itemUrl);
+
+  itemRouter.get(function(request, response) {
+    var query = {};
+    query[endpoint.idField.field] = request.params[endpoint.idField.slug];
+    endpoint.parentFields.forEach(function(parentField) {
+      query[parentField.field] = request.params[parentField.slug];
+    });
+    endpoint.Model.findOne(query, function(error, model) {
+      if (error) {
+        response.json(500, {error: "Error fetching model.", message: error});
+      } else if (!model) {
+        response.json(500, {error: "Model does not exist."});
+      }
+      response.json(model);
+    });
+  });
+
+  if (!endpoint.readOnly) {
+
+    itemRouter.put(function(request, response) {
       var query = {};
       query[endpoint.idField.field] = request.params[endpoint.idField.slug];
       endpoint.parentFields.forEach(function(parentField) {
@@ -148,8 +159,9 @@ module.exports = function createEndpoint(endpoint) {
           response.json(model);
         });
       });
-    })
-    .delete(function(request, response) {
+    });
+
+    itemRouter.delete(function(request, response) {
       var query = {};
       query[endpoint.idField.field] = request.params[endpoint.idField.slug];
       endpoint.parentFields.forEach(function(parentField) {
@@ -164,6 +176,8 @@ module.exports = function createEndpoint(endpoint) {
         response.json({message: "successfully deleted"});
       });
     });
+
+  }
 
   return router;
 };

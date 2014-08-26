@@ -36,6 +36,7 @@ var next = function() {
     imageSet = {};
     imageSet.name = imageSetName;
     imageSet.imageIds = imageIds;
+    imageSet.comment = "";
     ImageSetModel.update({name: imageSet.name}, imageSet, {upsert: true}, function (error) {
       if (error) {
         console.log("There was an error saving the image set.");

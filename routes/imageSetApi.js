@@ -1,16 +1,16 @@
 var _ = require("underscore");
 var express = require("express");
 
-var ImageModel = require("../models/image");
+var ImageSetModel = require("../models/imageSet");
 var generateEndpoint = require("./generateEndpoint");
 
 var router = express.Router();
 
 router.use(generateEndpoint({
   readOnly: true,
-  Model: ImageModel,
+  Model: ImageSetModel,
   contextFields: {},
-  bodyFields: ["name", "width", "height", "url", "comment"],
+  bodyFields: ["name", "imageIds", "comment"],
   parentFields: [],
   slug: "",
   idField: {slug: "id", field: "_id"}
@@ -18,19 +18,9 @@ router.use(generateEndpoint({
 
 router.use(generateEndpoint({
   readOnly: true,
-  Model: ImageModel,
+  Model: ImageSetModel,
   contextFields: {},
-  bodyFields: ["name", "width", "height", "url", "comment"],
-  parentFields: [],
-  slug: "sha",
-  idField: {slug: "sha", field: "sha"}
-}));
-
-router.use(generateEndpoint({
-  readOnly: true,
-  Model: ImageModel,
-  contextFields: {},
-  bodyFields: ["name", "width", "height", "url", "comment"],
+  bodyFields: ["imageIds", "comment"],
   parentFields: [],
   slug: "name",
   idField: {slug: "name", field: "name"}
