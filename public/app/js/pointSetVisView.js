@@ -1,4 +1,4 @@
-var PointSetRepresentationView = Backbone.View.extend({
+var PointSetVisView = Backbone.View.extend({
 
   tagName: "g",
 
@@ -6,7 +6,7 @@ var PointSetRepresentationView = Backbone.View.extend({
     var self = this;
     self.appState = options.appState || self.appState;
 
-    // The representation uses D3 for construction so we create the DOM
+    // The visualization uses D3 for construction so we create the DOM
     // elements with D3 in this function and remember any D3 selections we
     // might need in the future. We put this in an initialize function so that
     // we don't create/remove DOM elements everytime we want to rerender
@@ -35,7 +35,7 @@ var PointSetRepresentationView = Backbone.View.extend({
     self.listenTo(self.model, "startingRemoval", self.startPrettyRemove);
     
     // If the Backbone model is destroyed then remove this view (self.remove is
-    // a Backbone method). Worth noting is that the representation doesn't
+    // a Backbone method). Worth noting is that the visualization doesn't
     // trigger any removals on its own. It is wholly dependent on the list item
     // triggering a "startingRemoval" event on the model which is responded to
     // by the above callback. The callback above will remove this view.
@@ -85,7 +85,7 @@ var PointSetRepresentationView = Backbone.View.extend({
     self.drag = d3.behavior.drag()
       .origin(function(d) { return d; });
 
-    // Create the polygonal representation of the point set and cache the D3
+    // Create the polygonal visualization of the point set and cache the D3
     // selection.
     self.polySelection = self.setGroup.selectAll(self.model.svgElement)
       .data(["bg", "fg"], function(d, i) { return d; })
@@ -291,7 +291,7 @@ var PointSetRepresentationView = Backbone.View.extend({
     point.y = d3.event.y;
     self.model.trigger("change:points");
 
-    // Update the actual dot representation.
+    // Update the actual dot visualization.
     d3.select(domElement).attr("cx", point.x).attr("cy", point.y); // TODO: Add tablet support with offset here.
   },
 

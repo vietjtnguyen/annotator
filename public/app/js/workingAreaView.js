@@ -20,9 +20,9 @@ var WorkingAreaView = Backbone.View.extend({
     // the transform on the origin group).
     self.listenTo(self.appState, "change:zoom", self.renderZoom);
 
-    // If the point set collection changes then update the representation views
+    // If the point set collection changes then update the visualization views
     // accordingly.
-    self.listenTo(self.appState.pointSets, "add", self.addPointSetRepresentationView);
+    self.listenTo(self.appState.pointSets, "add", self.addPointSetVisView);
 
     // Responding to D3 events requires special processing. D3 events bind to
     // the DOM element that is responding and pass the datum and index as
@@ -120,13 +120,13 @@ var WorkingAreaView = Backbone.View.extend({
     });
   },
 
-  addPointSetRepresentationView: function(newModel) {
+  addPointSetVisView: function(newModel) {
     var self = this;
 
-    // Create the new representation view.
-    var newView = new PointSetRepresentationView({appState: self.appState, model: newModel});
+    // Create the new visualization view.
+    var newView = new PointSetVisView({appState: self.appState, model: newModel});
 
-    // Use jQuery to append the representation element to the origin. Why not
+    // Use jQuery to append the visualization element to the origin. Why not
     // D3? I dunno, because Backbone uses jQuery.
     self.$("#origin").append(newView.render().el);
   },

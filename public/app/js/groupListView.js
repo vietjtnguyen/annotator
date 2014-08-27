@@ -1,9 +1,12 @@
 var GroupListView = Backbone.View.extend({
 
-  events: {
-    "click #toggleGroupsButton": "toggleList",
-    // If the add button is clicked then add a new group!
-    "click #addGroupButton": "addItem"
+  events: function() {
+    var self = this;
+    return {
+      "click #toggleGroupsButton": self.toggleList,
+      // If the add button is clicked then add a new group!
+      "click #addGroupButton": self.addItem
+    };
   },
 
   initialize: function(options) {
