@@ -141,23 +141,21 @@ module.exports = function createEndpoint(endpoint) {
       endpoint.parentFields.forEach(function(parentField) {
         query[parentField.field] = request.params[parentField.slug];
       });
-      endpoint.Model.findOne(query, function(error, model) {
+
+      var model = {};
+      _.extend(model, endpoint.contextFields);
+      _.extend(model, _.pick(request.body, endpoint.bodyFields));
+      endpoint.parentFields.forEach(function(parentField) {
+        model[parentField.field] = request.params[parentField.slug];
+      });
+
+      endpoint.Model.findOneAndUpdate(query, model, {}, function(error, model) {
         if (error) {
           response.json(500, {error: "Error updating model.", message: error});
         } else if (!model) {
           response.json(500, {error: "Model does not exist."});
         }
-        _.extend(model, endpoint.contextFields);
-        _.extend(model, _.pick(request.body, endpoint.bodyFields));
-        endpoint.parentFields.forEach(function(parentField) {
-          model[parentField.field] = request.params[parentField.slug];
-        });
-        model.save(function(error) {
-          if (error) {
-            response.send(error);
-          }
-          response.json(model);
-        });
+        response.json(model);
       });
     });
 

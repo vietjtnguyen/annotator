@@ -54,7 +54,7 @@ if (app.get("env") === "development") {
   });
 }
 
-// This production error handler won"t leak information by printing a stack
+// This production error handler won't leak information by printing a stack
 // trace.
 app.use(function(err, req, res, next) {
   res.status(err.status || 500);

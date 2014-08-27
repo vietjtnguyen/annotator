@@ -9,6 +9,7 @@ var GroupListItemView = Backbone.View.extend({
     "click .glyphicon-remove": "removeClick"
   },
 
+  // Initializes a view by This view should only be constructed from GroupListView.
   initialize: function(options) {
     var self = this;
     self.appState = options.appState || self.appState;
@@ -17,7 +18,9 @@ var GroupListItemView = Backbone.View.extend({
     // element.
     self.listenTo(self.model, "change:id", self.renderId);
 
-    self.listenTo(self.model, "remove", self.startPrettyRemoval);
+    self.listenTo(self.model, "remove", function(model) {
+      self.startPrettyRemoval(function() { console.log("WHAT"); self.remove(); });
+    });
 
     // If the model gets destroyed then remove the list item (self.remove is a
     // Backbone method).
@@ -79,10 +82,12 @@ var GroupListItemView = Backbone.View.extend({
   removeClick: function(jqueryEvent) {
     var self = this;
     jqueryEvent.stopPropagation();
-    self.startPrettyRemoval();
+    self.startPrettyRemoval(function() {
+      self.model.destroy();
+    });
   },
 
-  startPrettyRemoval: function() {
+  startPrettyRemoval: function(onTransitionDone) {
     var self = this;
     // Trigger this event to notify others that removal has started.
     self.model.trigger("startingRemoval");
@@ -99,9 +104,9 @@ var GroupListItemView = Backbone.View.extend({
           .duration(250)
           .style("margin-top", -origHeight+"px")
           .each("end", function() {
-            // Model destruction also removes the model from the collection
-            // (GroupCollection) that it is a part of.
-            self.model.destroy();
+            if (onTransitionDone) {
+              onTransitionDone();
+            }
           });
       });
   }

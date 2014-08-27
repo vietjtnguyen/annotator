@@ -161,7 +161,6 @@ var AppRouter = Backbone.Router.extend({
     appState.setListingView.setPointSetType("Line");
   },
 
-
   parallelLinesSet: function(setName, index) {
     var self = this;
 
