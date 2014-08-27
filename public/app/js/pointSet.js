@@ -38,7 +38,6 @@ var PointSet = Backbone.Model.extend({
     var self = this;
     if (self.appState.get("selectedPointSetId") == self.get(self.idAttribute)) {
       self.appState.set("selectedPointSetId", "");
-      self.appState.save();
     }
   },
 
@@ -51,7 +50,6 @@ var PointSet = Backbone.Model.extend({
   },
 
   isFull: function() {
-    console.log("wrong");
     return false;
   },
 
@@ -67,7 +65,6 @@ var PointSet = Backbone.Model.extend({
       self.save();
     } else {
       self.appState.set("selectedPointSetId", !force && self.appState.get("selectedPointSetId") === self.get(self.idAttribute) ? "" : self.get(self.idAttribute));
-      self.appState.save();
     }
   }
 
@@ -86,7 +83,6 @@ var SinglePoint = PointSet.extend({
   },
 
   isFull: function() {
-    console.log("right");
     var self = this;
     return self.get("points").length >= 1;
   },

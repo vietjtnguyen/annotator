@@ -26,7 +26,6 @@ var Group = Backbone.Model.extend({
     var self = this;
     if (self.appState.get("selectedGroupId") == self.get(self.idAttribute)) {
       self.appState.set("selectedGroupId", "");
-      self.appState.save();
     }
   }
 

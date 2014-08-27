@@ -33,8 +33,8 @@ var UtilityBoxView = Backbone.View.extend({
     var self = this;
     self.$("#changeLineColorButton").colorpicker()
       .on("changeColor", function(e) {
-        self.appState.set("lineColor", e.color.toHex());
-        self.appState.save();
+        self.appState.userState.set("lineColor", e.color.toHex());
+        self.appState.userState.save();
       });
   },
 
@@ -46,7 +46,7 @@ var UtilityBoxView = Backbone.View.extend({
 
   renderLineColor: function() {
     var self = this;
-    self.$("#changeLineColorButton>span").css("color", self.appState.get("lineColor"));
+    self.$("#changeLineColorButton>span").css("color", self.appState.userState.get("lineColor"));
   },
 
   resetView: function() {
@@ -75,21 +75,20 @@ var UtilityBoxView = Backbone.View.extend({
         });
       };
     }).each("end", function() {
-      // Save the state of the appState's zoom at the end of the transition.
-      self.appState.save();
+      // TODO: Do something at the end of a reset view?
     });
   },
 
   toggleBg: function() {
     var self = this;
-    self.appState.set("background", self.appState.get("background") == "light" ? "dark" : "light");
-    self.appState.save();
+    self.appState.userState.set("background", self.appState.userState.get("background") == "light" ? "dark" : "light");
+    self.appState.userState.save();
   },
 
   toggleGrid: function() {
     var self = this;
-    self.appState.set("grid", self.appState.get("grid") == "off" ? "on" : "off");
-    self.appState.save();
+    self.appState.userState.set("grid", self.appState.userState.get("grid") == "off" ? "on" : "off");
+    self.appState.userState.save();
   },
 
 });

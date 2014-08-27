@@ -19,7 +19,7 @@ var GroupListItemView = Backbone.View.extend({
     self.listenTo(self.model, "change:id", self.renderId);
 
     self.listenTo(self.model, "remove", function(model) {
-      self.startPrettyRemoval(function() { console.log("WHAT"); self.remove(); });
+      self.startPrettyRemoval(function() { self.remove(); });
     });
 
     // If the model gets destroyed then remove the list item (self.remove is a
@@ -76,7 +76,6 @@ var GroupListItemView = Backbone.View.extend({
   selectSelf: function() {
     var self = this;
     self.appState.set("selectedGroupId", self.appState.get("selectedGroupId") === self.model.get(self.model.idAttribute) ? "" : self.model.get(self.model.idAttribute));
-    self.appState.save();
   },
 
   removeClick: function(jqueryEvent) {

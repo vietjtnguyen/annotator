@@ -53,7 +53,7 @@ var PointSetVisView = Backbone.View.extend({
 
     // If the application changes the line color then we'll want to rerender
     // the line color accordingly.
-    self.listenTo(self.appState, "change:lineColor", self.renderLineColor);
+    self.listenTo(self.appState.userState, "change:lineColor", self.renderLineColor);
 
     // Responding to D3 events requires special processing. D3 events bind to
     // the DOM element that is responding and pass the datum and index as
@@ -134,7 +134,7 @@ var PointSetVisView = Backbone.View.extend({
       .classed("point", true)
       .style({
         "opacity": 0,
-        "stroke": self.appState.get("lineColor")
+        "stroke": self.appState.userState.get("lineColor")
       })
       .on("click", function(d, i) { self.handlePointClick(self, d, i); })
       .on("mouseover", function(d, i) {
@@ -184,7 +184,7 @@ var PointSetVisView = Backbone.View.extend({
 
   renderLineColor: function() {
     var self = this;
-    self.fgPolySelection.style("stroke", self.appState.get("lineColor"));
+    self.fgPolySelection.style("stroke", self.appState.userState.get("lineColor"));
   },
 
   renderSelection: function() {
@@ -195,7 +195,7 @@ var PointSetVisView = Backbone.View.extend({
       self.fgPolySelection.style("stroke", "#00f");
     } else {
       self.polySelection.classed("selected", false);
-      self.fgPolySelection.style("stroke", self.appState.get("lineColor"));
+      self.fgPolySelection.style("stroke", self.appState.userState.get("lineColor"));
     }
   },
 

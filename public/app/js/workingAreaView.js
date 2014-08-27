@@ -11,10 +11,10 @@ var WorkingAreaView = Backbone.View.extend({
     self.listenTo(self.appState.currentImage, "change", self.renderImage);
 
     // If the background state changes then rerender the background.
-    self.listenTo(self.appState, "change:background", self.renderBackgroundColor);
+    self.listenTo(self.appState.userState, "change:background", self.renderBackgroundColor);
 
     // If the grid state changes then rerender the grid.
-    self.listenTo(self.appState, "change:grid", self.renderGridVisibility);
+    self.listenTo(self.appState.userState, "change:grid", self.renderGridVisibility);
 
     // If the zoom (pan and zoom) changes then rerender the zoom (i.e. update
     // the transform on the origin group).
@@ -190,7 +190,7 @@ var WorkingAreaView = Backbone.View.extend({
   // This is a D3 event hooked into the view using `delegateD3Event`.
   zoomend: function(domElement, datum, index) {
     var self = this;
-    self.appState.save();
+    // TODO: Do something at the end of a pan/zoom motion?
   },
 
   // This is a D3 event hooked into the view using `delegateD3Event`.

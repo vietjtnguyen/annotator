@@ -1,39 +1,143 @@
-// Establish API URL.
+// Here we establish API URL for the whole application. If the application is
+// not hosted at the root URL (i.e. in a sub-folder like
+// `http://my.domain.com/sub-folder`) then `rootUrl` needs to be set to that
+// sub-folder (`rootUrl = "subFolder";` in the example).
 var rootUrl = "";
 var baseApiUrl = window.location.protocol + "//" + window.location.host + rootUrl;
 
-////////////////////////////////////////////////////////////////////////////////
-
-// TODO: Move session specific settings in here (such as current image, current
-// image set, current image set index).
-var SessionState = Backbone.Model.extend({
-});
-
-// TODO: Move user specific settings in here (such as line color).
+// User State
+// ----------
+//
+// This model saves user settings in local storage. User settings include
+// background color, grid visibility, and line color. These are settings that
+// persist across annotations, images, and sets. This model owns these
+// properties. The visuals representing these properties respond to change
+// events on this model's fields (such as `WorkingAreaView`).
 var UserState = Backbone.Model.extend({
+
+// The "user" in "user state" is a bit of a misnomer as there currently isn't
+// support for user accounts yet. Instead the state is effectively stored for
+// the user by using local storage.
+  localStorage: new Backbone.LocalStorage("annotator-userstate"),
+
+// Attributes:
+  defaults: {
+
+// `id`: This ID is just here to uniquely identifer one user state in local
+// storage so that when we call
+// [`Backbone.Model.fetch`](http://backbonejs.org/#Model-fetch) or
+// [`Backbone.Model.save`](http://backbonejs.org/#Model-save) it grabs/saves
+// the same model every time.
+    id: "local",
+
+// `background`: A binary enumeration (`"light"` or `"dark"`) determining if
+// the background of the working area is light or dark.
+    background: "light",
+
+// `grid`: A binary enumeration (`"off"` or `"on"`) determining if the
+// background grid is visible or not.
+    grid: "off",
+
+// `lineColor`: A CSS color string for the color of ungrouped lines.
+    lineColor: "#f0f",
+  }
 });
 
+// Application State
+// -----------------
+//
 // This model represents the application state and doubly serves as the root
 // namespace for the application in the sense that point sets, views, and more
-// are attached to this model, but not as attributes.
+// are attached to this model, but not as attributes. It should act as a global
+// singleton available everywhere by polluting the global namespace with its
+// instance as `app`. This model is also never saved (to local storage or a
+// server).
+//
+// The application consist of five primary views:
+// 
+// - Working area: Contains the image and point set visualizations. Primarily
+//   controlled using D3 inside the `WorkingAreaView` Backbone view.
+// - Tool pane: Contains the following three sections. Is not represented
+//   explicitly by a Backbone view.
+//   - Image set control: Contains the widgets to control navigation within an
+//     image set. These widgets are simple, statically defined HTML DOM
+//     elements with simple interactions. As such there is no special
+//     processing (no D3), and all events can be handled directly with the
+//     Backbone view `ImageSetControlView`.
+//   - Group list section: Contains the button to add a group and the
+//     collection of widgets that allow manipulation of individual groups.
+//     Handled by the Backbone view `GroupListView`.
+//     - Group lits item: Contains the button to select and remove a specific
+//       group. Handled by the Backbone view `GroupListItemView`.
+//   - Point set list section: Contains the button to add a point set and the
+//     collection of widgets thta allow manipulation of individual point sets.
+//     Handled by Backbone view `PointSetListView`.
+//     - Point set list item: Contains the button to select and remove a
+//       specific point set. Handled by the Backbone view
+//       `PointSetListItemView`.
+// - Utility box: This box floats in the top-left corner and contains the
+//   widgets to control user settings.
+//
+// Since this model is both a model and an object we distinguish attributes
+// from member properties. When we say attributes we refer to Backbone
+// attributes that must be accessed via `Backbone.Model`'s `get` and `set`
+// methods. When we say member properties we refer to object properties
+// accessible directly either via the `.` operator or `[]` indexing like any
+// other Javascript hash object. These member properties are used to treat the
+// `AppState` object as an application level namespace.
+//
+// Also worth noting is that all attributes can be thought of as "owned" by the
+// application state in the sense that any modification of these states goes
+// through the application state and everyone else must react to changes via
+// the Backbone event system (e.g.
+// [`listenTo`](http://backbonejs.org/#Events-listenTo)).
 var AppState = Backbone.Model.extend({
 
-  localStorage: new Backbone.LocalStorage("annotator-appstate"),
-
+// Attributes:
   defaults: {
+
+// - `selectedPointSetId`: Currently selected point set. Only one point set can
+//   be selected at a time.
     selectedPointSetId: "",
+
+// - `selectedGroupId`: Currently selected group. Only one group set can be
+//   selected at a time. When a group is selected the application goes into
+//   "group membership mode" where point set selection toggles the selected
+//   group as the point set's group.
     selectedGroupId: "",
-    background: "light",
-    grid: "off",
-    lineColor: "#000",
+
+// - `zoom`: This object contains two properties that represent the pan/zoom of
+//   the working area: `translate` and `scale`.
+//   - `translate`: A two element array of numbers representing the translate
+//     vector.
+//   - `scale`: A single number as zoom multipler.
     zoom: {
       translate: [0, 0],
       scale: 1
     }
   },
 
+// Properties:
+//
+// - `userState`
+// - `currentImage`
+// - `currentImageSet`
+// - `currentImageSetIndex`
+// - `pointSets`
+// - `groups`
+// - `utilityBoxView`
+// - `imageSetControlView`
+// - `workingAreaView`
+// - `setListingView`
+// - `groupListingView`
+
   initialize: function() {
     var self = this;
+
+    // Create the user state. This model doesn't get deleted or destroyed. It
+    // exists to be filled with a saved state from local storage via a
+    // `Backbone.Model.fetch`.
+    self.userState = new UserState();
 
     // Populate the current image. This model doesn't get deleted or destroyed.
     // If the image changes then the ID is changed and a fetch performed.
@@ -141,8 +245,6 @@ var AppState = Backbone.Model.extend({
 
 });
 
-////////////////////////////////////////////////////////////////////////////////
-
 var appState = new AppState();
 
 var AppRouter = Backbone.Router.extend({
@@ -163,6 +265,14 @@ var AppRouter = Backbone.Router.extend({
 
   parallelLinesSet: function(setName, index) {
     var self = this;
+
+    appState.userState.fetch({
+      appState: appState,
+      success: function() {
+      },
+      error: function() {
+      }
+    });
 
     // Make sure the index is an integer.
     appState.currentImageSetIndex = parseInt(index);
@@ -196,17 +306,7 @@ var AppRouter = Backbone.Router.extend({
 
         appState.currentImage.fetch({
           success: function() {
-
-            appState.set("id", "parallel-lines-" + appState.currentImage.get("name"));
-            appState.fetch({
-              appState: appState,
-              success: function() {
-              },
-              error: function() {
-                appState.utilityBoxView.resetView();
-              }
-            });
-
+            appState.utilityBoxView.resetView();
           },
           error: function() {
             appState.pageAlert("danger", "Error while fetching image. Image \"" + appState.currentImage.get("_id") + "\" likely does not exist.");
@@ -220,15 +320,19 @@ var AppRouter = Backbone.Router.extend({
         appState.pointSets.fetch({
           appState: appState,
           remove: true,
-          success: function() { console.log("points fetched"); },
-          error: function() { console.log("error fetching points"); }
+          success: function() {
+          },
+          error: function() {
+          }
         });
 
         appState.groups.fetch({
           appState: appState,
           remove: true,
-          success: function() { console.log("groups fetched"); },
-          error: function() { console.log("error fetching groups"); }
+          success: function() {
+          },
+          error: function() {
+          }
         });
       },
       error: function() {
