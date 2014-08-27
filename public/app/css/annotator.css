@@ -1,0 +1,120 @@
+/* This is needed to get the canvas to stretch on Firefox. */
+html {
+  width: 100%;
+  height: 100%;
+}
+
+body {
+  margin: 0px;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+body.light {
+  background: #fff;
+}
+body.dark {
+  background: #000;
+}
+
+a {
+  cursor: pointer;
+}
+
+#workingArea {
+  width: 100%;
+  height: 100%;
+}
+
+#toolPane {
+  position: fixed;
+  right: 0px;
+  top: 0px;
+  padding: 10px;
+  padding-top: 0px;
+  background: rgba(255, 255, 255, 0.9);
+  overflow-y: scroll;
+  width: 200px;
+  height: 100%;
+  box-shadow: -5px 0px 8px 0px rgba(0, 0, 0, 0.1);
+}
+
+.grid {
+  fill: none;
+  shape-rendering: crispEdges;
+  vector-effect: non-scaling-stroke;
+}
+.grid.on {
+  display: inline;
+}
+.grid.off {
+  display: none;
+}
+.grid.light {
+  stroke: #eee;
+}
+.grid.dark {
+  stroke: #111;
+}
+
+#utilityBox {
+  position: fixed;
+  left: 10px;
+  top: 10px;
+  padding-left: 10px;
+  padding-right: 10px;
+  padding-top: 3px;
+  padding-bottom: 3px;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: -3px 3px 16px 0px rgba(0, 0, 0, 0.2);
+}
+
+.point {
+  vector-effect: non-scaling-stroke;
+  fill: #fff;
+  fill-opacity: 0.1;
+  stroke: #000;
+  stroke-width: 1.5px;
+  stroke-opacity: 0.1;
+}
+
+.polygonBg {
+  vector-effect: non-scaling-stroke;
+  fill: none;
+  stroke: #fff;
+  stroke-width: 3px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.5;
+}
+
+.polygonFg {
+  vector-effect: non-scaling-stroke;
+  fill: none;
+  stroke: #000;
+  stroke-width: 1px;
+  stroke-linecap: butt;
+  stroke-linejoin: round;
+  opacity: 1;
+  /* This is to allow hover selection on the thicker background line without
+   * the thinner foreground line getting in the way. */
+  pointer-events: none;
+}
+
+.polygonBg.selected {
+  stroke-width: 8px;
+}
+
+.polygonFg.selected {
+  stroke-width: 2px;
+}
+
+.polygonBg.hover {
+  stroke-width: 8px;
+}
+
+.alert-condensed {
+  padding: 6px 8px 6px 8px;
+  margin-bottom: 6px;
+}

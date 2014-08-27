@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>Annotator</title>
+  <link rel="stylesheet" type="text/css" href="css/external/bootstrap.css">
+  <link rel="stylesheet" type="text/css" href="css/external/bootstrap-colorpicker.css"/>
+  <link rel="stylesheet" type="text/css" href="css/annotator.css"/>
+</head>
+
+<body>
+
+  <div id="alertSection" style="position: absolute; width: 50%; margin-left: -25%; left: 50%; top: 10px;">
+  </div>
+  
+  <div id="utilityBox">
+    <h4>Utilities</h4>
+    <p><button id="resetViewButton" class="btn btn-default btn-xs btn-block"><span class="glyphicon glyphicon-home"></span> Reset View</button></p>
+    <p><button id="toggleBgButton" class="btn btn-default btn-xs btn-block"><span class="glyphicon glyphicon-adjust"></span> Toggle BG</button></p>
+    <p><button id="toggleGridButton" class="btn btn-default btn-xs btn-block"><span class="glyphicon glyphicon-th"></span> Toggle Grid</button></p>
+    <p>
+      <button id="undoButton" class="btn btn-default btn-xs" disabled="disabled"><span class="glyphicon glyphicon-chevron-left"></span> Undo</button>
+      <button id="redoButton" class="btn btn-default btn-xs" disabled="disabled">Redo <span class="glyphicon glyphicon-chevron-right"></span></button>
+    </p>
+    <p><button id="changeLineColorButton" class="btn btn-default btn-xs btn-block" data-color="rgb(0, 0, 0)"><span class="glyphicon glyphicon-tint"></span> Line Color</button></p>
+  </div>
+
+  <div id="toolPane">
+    <!-- <div> -->
+    <!--   <button class="btn btn-default" onclick="TogetherJS(this); return false;">Collaborate!</button> -->
+    <!-- </div> -->
+    <div id="imageSetControlSection">
+      <h4>Set Navigation</h4>
+      <form id="imageSetForm" class="input-group input-group-sm">
+        <input id="imageSetIndex" type="text" class="form-control" value="12345"></input>
+        <span class="input-group-btn">
+          <button id="goImageButton" class="btn btn-default"><span class="glyphicon glyphicon-share-alt"></span></button>
+          <button id="prevImageButton" class="btn btn-default"><span class="glyphicon glyphicon-step-backward"></span></button>
+          <button id="nextImageButton" class="btn btn-default"><span class="glyphicon glyphicon-step-forward"></span></button>
+        </span>
+      </form>
+    </div>
+    <div id="groupSection">
+      <h4>Groups</h4>
+      <p>
+        <button id="addGroupButton" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-plus"></span> Add Group</button>
+        <button id="toggleGroupsButton" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-sort"></span></button>
+      </p>
+      <div id="groupListing" class="list-group">
+      </div>
+    </div>
+    <div id="pointSetSection">
+      <h4>Lines</h4>
+      <p>
+        <button id="addPointSetButton" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-plus"></span> <span id="addText">Add Line</span></button>
+        <button id="togglePointSetsButton" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-sort"></span></button>
+      </p>
+      <div id="lineListing" class="list-group">
+      </div>
+    </div>
+  </div>
+
+  <svg id="workingArea">
+    <defs>
+      <path id="plusPath" d="M0,-4 V4 M-4,0 H4" style="vector-effect: non-scaling-stroke;"/>
+    </defs>
+    <g id="origin" transform="translate(0, 0), scale(1)">
+      <g id="gridLines"></g>
+      <image width="0" height="0" href=""></image>
+    </g>
+  </svg>
+
+  <script type="text/template" id="listItemTemplate">
+    <a class="list-group-item" style="padding: 4px; padding-left: 7px;"><span id="text"></span><span class="pull-right"><small><button class="btn btn-xs btn-danger glyphicon glyphicon-remove" style="margin-top: -5px"></button></small></span></a>
+  </script>
+
+  <script type="text/template" id="alertTemplate">
+    <div class="alert alert-<%= alertType %> alert-condensed" role="alert">
+      <button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+      <%= message %>
+    </div>
+  </script>
+
+  <!-- TODO: Create a Grunt job to merge these source files and minify them. -->
+
+  <script type="text/javascript" src="js/external/jquery-1.11.1.js"></script>
+  <script type="text/javascript" src="js/external/jquery-ui.js"></script>
+  <script type="text/javascript" src="js/external/bootstrap.js"></script>
+  <script type="text/javascript" src="js/external/bootstrap-colorpicker.js"></script>
+  <script type="text/javascript" src="js/external/d3.js"></script>
+  <script type="text/javascript" src="js/external/underscore.js"></script>
+  <script type="text/javascript" src="js/external/backbone.js"></script>
+  <script type="text/javascript" src="js/external/backbone.localStorage.js"></script>
+  <script type="text/javascript" src="js/external/backbone.momento.js"></script>
+
+  <script type="text/javascript" src="js/util.js"></script>
+  <script type="text/javascript" src="js/point.js"></script>
+  <script type="text/javascript" src="js/image.js"></script>
+  <script type="text/javascript" src="js/imageSet.js"></script>
+  <script type="text/javascript" src="js/pointSet.js"></script>
+  <script type="text/javascript" src="js/group.js"></script>
+  <script type="text/javascript" src="js/pointSetCollection.js"></script>
+  <script type="text/javascript" src="js/pointSetListItemView.js"></script>
+  <script type="text/javascript" src="js/pointSetListView.js"></script>
+  <script type="text/javascript" src="js/pointSetVisView.js"></script>
+  <script type="text/javascript" src="js/groupCollection.js"></script>
+  <script type="text/javascript" src="js/groupListItemView.js"></script>
+  <script type="text/javascript" src="js/groupListView.js"></script>
+  <script type="text/javascript" src="js/workingAreaView.js"></script>
+  <script type="text/javascript" src="js/utilityBoxView.js"></script>
+  <script type="text/javascript" src="js/imageSetControlView.js"></script>
+  <script type="text/javascript" src="js/annotator.js"></script>
+
+  <!-- <script type="text/javascript" src="https://togetherjs.com/togetherjs-min.js"></script> -->
+
+</body>
+
+</html>
