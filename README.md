@@ -39,7 +39,8 @@ local  0.078GB
 1. Clone the Annotator repository: `git clone https://github.com/vietjtnguyen/annotator.git`
 2. `cd annotator`
 3. Install Node dependencies. `npm install`
-4. Start the server. `npm start`
+4. If you are serving this from a non-root URL then you need to edit the first code line of `/public/app/js/annotator.js`. Normally the application assumes that you are hosting it at the root of your domain (e.g. `http://my.domain.com/`) but if you are not (e.g. `http://my.domain.com/annotator/`) then you need to specify `rootUrl` (e.g. `var rootUrl = "annotator";`).
+5. Start the server by running `npm start` in the repository's root. By default the application binds to port `3000`. If you need to bind it to another port then specify the `PORT` environment variable (e.g. `export PORT=80` in `bash`).
 
 ## Install Dataset
 
@@ -48,6 +49,31 @@ local  0.078GB
 3. Run `./install_dataset.bash public/image ./dataset/myDataset`. This script will `find` every `bmp`, `gif`, `jpg`, `jpeg`, `png`, `tif`, and `tiff` in your dataset folder. It then uses `convert` to get the width and height and `shasum` to get the SHA1 hash of the image file. This information including image name, file, and URL are saved as entries in the local Mongo database in the `annotator` database in the `images` collection. This save is done using `mongoimport`. Finally it creates a symlink in `./public/image` to the original image file. Images are served statically from `./public/image` and are named based on their SHA1 hash.
 
 Keep in mind that there is a 16 MB limit to `mongoimport` when using `--jsonArray` which the `install_dataset.bash` script uses. For reference, the JSON file for all PASCAL 2010 images (about 20k images) is 4.6 MB.
+
+Getting Data
+------------
+
+You can extract the data saved by visiting a special endpoint: `/parallel-lines/report.json`. This will export all of the saved annotation data as a JSON file. The JSON object is keyed by image name. Each image is an array of objects with a `points`, `group`, and `description` attribute. See the example below.
+
+```
+{
+  "P1020177": [
+    {
+      "points": [ { "x": 231.5 "y": 106.5 }, { "x": 325.5 "y": 214.5 } ],
+      "group": "53fe890c33c7de9713b2948c",
+      "description": ""
+    },
+    {
+      "points": [ { "x": 249.5 "y": 231.5 } { "x": 337.5 "y": 131.5 } ],
+      "group": "53fe890c33c7de9713b2948c",
+      "description": ""
+    }
+  ],
+  "P1080015": ...
+}
+```
+
+The group is just a randomly generated hexadecimal GUID to ensure uniqueness when groups are created. The group name has no semantic meaning.
 
 Developer Stuff
 ===============
@@ -261,3 +287,4 @@ Helpful Links
 - http://stackoverflow.com/questions/17499089/versionerror-no-matching-document-found-error-on-node-js-mongoose
   - This was a surprising error. If a point was moved a lot then sometimes the points would disappear. It turns out that sometimes the async save causes a concurrent save in the database. The database doesn't like this so it coughs up this error. The server actually responds with a `200 OK` though the content is `{"message":"No matching document found.","name":"VersionError"}`. Since the response was `200 OK` Backbone ingests this as the model's JSON and thus wipes out the `points` field, causing the points to disappear. One possible solution is to turn off save-on-modify and instead have it save locally to `localStorage` and push said changes to the server at certain intervals. Another solution is to somehow lock the document on the server end. From a cursory Google search it doesn't appear that this has a clean solution (<http://blog.scrapinghub.com/2013/05/13/mongo-bad-for-scraped-data/>, <http://longtermlaziness.wordpress.com/2012/08/24/a-post-you-wish-to-read-before-considering-using-mongodb-for-your-next-app/>).
   - This was fixed by changing the `PUT` response in `generateEndPoint` from a `find` and then `save` to a (`findOneAndUpdate`)[http://mongoosejs.com/docs/api.html#model_Model.findOneAndUpdate} call.
+- https://github.com/jfromaniello/url-join
