@@ -22,7 +22,7 @@ router.get("/:annotationName/set", function(request, response) {
 
 // This serves a "report" of the annotation data for the specified annotation
 // path. The report is a JSON object with all point sets grouped by image.
-router.get("/:annotationName/report", function(request, response) {
+router.get("/:annotationName/report.json", function(request, response) {
   PointSetModel
     // Get all point sets associated with this annotation.
     .find({annotation: request.params.annotationName})

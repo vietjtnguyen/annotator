@@ -148,7 +148,7 @@ var WorkingAreaView = Backbone.View.extend({
     self.origin.select("image")
       .attr("width", self.appState.currentImage.get("width"))
       .attr("height", self.appState.currentImage.get("height"))
-      .attr("xlink:href", self.appState.currentImage.get("url"));
+      .attr("xlink:href", urljoin(baseApiUrl, self.appState.currentImage.get("url")));
   },
 
   // "Renders" the background color by updating the body and grid classes.
