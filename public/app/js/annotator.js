@@ -3,7 +3,7 @@
 // `http://my.domain.com/sub-folder`) then `rootUrl` needs to be set to that
 // sub-folder (`rootUrl = "subFolder";` in the example).
 var rootUrl = "";
-var baseApiUrl = window.location.protocol + "//" + window.location.host + rootUrl;
+var baseApiUrl = urljoin(window.location.protocol + "//" + window.location.host, rootUrl);
 
 // User State
 // ----------
@@ -287,7 +287,7 @@ var AppRouter = Backbone.Router.extend({
     appState.setListingView.setPointSetType("Line");
 
     appState.currentImageSet.set("name", setName);
-    appState.currentImageSet.urlRoot = baseApiUrl + "/api/image-set/name";
+    appState.currentImageSet.urlRoot = urljoin(baseApiUrl, "/api/image-set/name");
     appState.currentImageSet.fetch({
       success: function() {
 
@@ -302,7 +302,7 @@ var AppRouter = Backbone.Router.extend({
         var imageId = imageIds[appState.currentImageSetIndex];
         appState.currentImage.idAttribute = "_id";
         appState.currentImage.set("_id", imageId);
-        appState.currentImage.urlRoot = baseApiUrl + "/api/image/";
+        appState.currentImage.urlRoot = urljoin(baseApiUrl, "/api/image/");
 
         appState.currentImage.fetch({
           success: function() {
@@ -314,8 +314,8 @@ var AppRouter = Backbone.Router.extend({
           }
         });
 
-        appState.pointSets.url = baseApiUrl + "/api/parallel-lines/" + appState.currentImage.get("_id") + "/point-set/";
-        appState.groups.url = baseApiUrl + "/api/parallel-lines/" + appState.currentImage.get("_id") + "/group/";
+        appState.pointSets.url = urljoin(baseApiUrl, "/api/parallel-lines/", appState.currentImage.get("_id"), "/point-set/");
+        appState.groups.url = urljoin(baseApiUrl, "/api/parallel-lines/", appState.currentImage.get("_id"), "/group/");
 
         appState.pointSets.fetch({
           appState: appState,
