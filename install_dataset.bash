@@ -42,6 +42,6 @@ echo -e "\n]" >> $FOLDER.json
 # http://docs.mongodb.org/manual/reference/program/mongoimport/#cmdoption--upsert
 echo ""
 echo "Images saved to $FOLDER.json, importing into local mongodb..."
-echo "  mongoimport -d annotator -c images --upsert --upsertFields sha --type json --jsonArray --file $FOLDER.json"
+echo "  mongoimport -d annotator -c images --upsert --upsertFields name --type json --jsonArray --file $FOLDER.json"
 echo ""
-mongoimport -d annotator -c images --upsert --upsertFields sha --type json --jsonArray --file $FOLDER.json
+mongoimport -d annotator -c images --upsert --upsertFields name --type json --jsonArray --file $FOLDER.json

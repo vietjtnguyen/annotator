@@ -4,7 +4,7 @@ var Schema = mongoose.Schema;
 
 var imageSchema = new Schema({
   sha: {type: String, required: true, index: true},
-  name: {type: String, required: true, index: true},
+  name: {type: String, required: true, index: true, unique: true},
   filename: {type: String, required: true},
   url: {type: String, required: true},
   width: {type: Number, required: true},
