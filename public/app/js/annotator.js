@@ -299,7 +299,7 @@ var AppRouter = Backbone.Router.extend({
           return;
         }
 
-        var imageId = imageIds[appState.currentImageSetIndex];
+        var imageId = imageIds[appState.currentImageSetIndex - 1];
         appState.currentImage.idAttribute = "_id";
         appState.currentImage.set("_id", imageId);
         appState.currentImage.urlRoot = urljoin(baseApiUrl, "/api/image/");

@@ -22,7 +22,7 @@ var ImageSetControlView = Backbone.View.extend({
   goToSpecificImage: function() {
     var self = this;
     var index = parseInt(self.$("#imageSetIndex").val());
-    if (index && index > 1 && index <= self.appState.currentImageSet.get("imageIds").length) {
+    if (index && index >= 1 && index <= self.appState.currentImageSet.get("imageIds").length) {
       self.jumpImage(index);
     } else {
       self.appState.pageAlert("warning", "Index is invalid.");
@@ -44,13 +44,13 @@ var ImageSetControlView = Backbone.View.extend({
 
   offsetImage: function(offset) {
     var self = this;
-    self.appState.currentImageSetIndex = (self.appState.currentImageSetIndex + offset + self.appState.currentImageSet.get("imageIds").length) % self.appState.currentImageSet.get("imageIds").length;
+    self.appState.currentImageSetIndex = (self.appState.currentImageSetIndex - 1 + offset + self.appState.currentImageSet.get("imageIds").length) % self.appState.currentImageSet.get("imageIds").length + 1;
     appRouter.navigate("parallel-lines/set/" + self.appState.currentImageSet.get("name") + "/" + self.appState.currentImageSetIndex + "/", {trigger: true});
   },
 
   jumpImage: function(index) {
     var self = this;
-    self.appState.currentImageSetIndex = index % self.appState.currentImageSet.get("imageIds").length;
+    self.appState.currentImageSetIndex = (index - 1) % self.appState.currentImageSet.get("imageIds").length + 1;
     appRouter.navigate("parallel-lines/set/" + self.appState.currentImageSet.get("name") + "/" + self.appState.currentImageSetIndex + "/", {trigger: true});
   }
 
