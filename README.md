@@ -39,7 +39,7 @@ local  0.078GB
 1. Clone the Annotator repository: `git clone https://github.com/vietjtnguyen/annotator.git`
 2. `cd annotator`
 3. Install Node dependencies. `npm install`
-4. If you are serving this from a non-root URL then you need to edit the first code line of `/public/app/js/annotator.js`. Normally the application assumes that you are hosting it at the root of your domain (e.g. `http://my.domain.com/`) but if you are not (e.g. `http://my.domain.com/annotator/`) then you need to specify `rootUrl` (e.g. `var rootUrl = "annotator";`).
+4. If you are serving this from a non-root URL then you need to edit the first code line of `./public/app/js/annotator.js`. Normally the application assumes that you are hosting it at the root of your domain (e.g. `http://my.domain.com/`) but if you are not (e.g. `http://my.domain.com/annotator/`) then you need to specify `rootUrl` (e.g. `var rootUrl = "annotator";`).
 5. Start the server by running `npm start` in the repository's root. By default the application binds to port `3000`. If you need to bind it to another port then specify the `PORT` environment variable (e.g. `export PORT=80` in `bash`).
 
 ## Install Dataset
@@ -49,6 +49,23 @@ local  0.078GB
 3. Run `./install_dataset.bash public/image ./dataset/myDataset`. This script will `find` every `bmp`, `gif`, `jpg`, `jpeg`, `png`, `tif`, and `tiff` in your dataset folder. It then uses `convert` to get the width and height and `shasum` to get the SHA1 hash of the image file. This information including image name, file, and URL are saved as entries in the local Mongo database in the `annotator` database in the `images` collection. This save is done using `mongoimport`. Finally it creates a symlink in `./public/image` to the original image file. Images are served statically from `./public/image` and are named based on their SHA1 hash.
 
 Keep in mind that there is a 16 MB limit to `mongoimport` when using `--jsonArray` which the `install_dataset.bash` script uses. For reference, the JSON file for all PASCAL 2010 images (about 20k images) is 4.6 MB.
+
+An example dataset installation script is provided in `./dataset/install_york_dataset.bash`.
+
+About
+=====
+
+Computer vision and machine learning research is dependent (depending on methodology) on labeled datasets as a ground truth for both training and testing.
+
+Early datasets were image level annotations where an entire image was labeled with a class (e.g. [MNIST Digits](http://yann.lecun.com/exdb/mnist/), [Caltech 101](http://www.vision.caltech.edu/Image_Datasets/Caltech101/)). Scene classification datasets can also be crudely considered image level annotations. Object detection algorithms require region level annotations, usually in the form of a bounding box around objects in an image. Object segmentation takes it further by labeling object silhouettes with arbitrary shaped regions. These arbitrary shaped regions either take the form of a set of polygons (with no convexity constraint) or pixel level labels, though it can be argued that these formats are interchangeable.
+
+Labeling these datasets is a labor intensive task with labeling tools often rewritten from scratch. Many of the tools I have seen written for annotation tasks are one off projects written using MATLAB's GUI. The goal of this project is to develop a fairly flexible annotation system that is web based and allows for different annotation types. Having a web application as the annotation tool allows us to leverage a huge ecosystem of web technologies. It also lets labelers access the tool in a distributed manner without the need for MATLAB.
+
+Concepts
+--------
+
+Usage
+=====
 
 Getting Data
 ------------
@@ -77,18 +94,6 @@ The group is just a randomly generated hexadecimal GUID to ensure uniqueness whe
 
 Developer Stuff
 ===============
-
-TODO
-----
-
-- Set creation, modification, and support.
-- Undo/redo support.
-- Disabled mode for errors.
-- Documentation.
-- Support bounding boxes and object labeling.
-- Add more report end points and formats.
-- Add tablet support with handle offset.
-- Add setting to change root URL.
 
 API
 ---
@@ -286,5 +291,8 @@ Helpful Links
 - http://backbonejs.org/#Events-stopListening
 - http://stackoverflow.com/questions/17499089/versionerror-no-matching-document-found-error-on-node-js-mongoose
   - This was a surprising error. If a point was moved a lot then sometimes the points would disappear. It turns out that sometimes the async save causes a concurrent save in the database. The database doesn't like this so it coughs up this error. The server actually responds with a `200 OK` though the content is `{"message":"No matching document found.","name":"VersionError"}`. Since the response was `200 OK` Backbone ingests this as the model's JSON and thus wipes out the `points` field, causing the points to disappear. One possible solution is to turn off save-on-modify and instead have it save locally to `localStorage` and push said changes to the server at certain intervals. Another solution is to somehow lock the document on the server end. From a cursory Google search it doesn't appear that this has a clean solution (<http://blog.scrapinghub.com/2013/05/13/mongo-bad-for-scraped-data/>, <http://longtermlaziness.wordpress.com/2012/08/24/a-post-you-wish-to-read-before-considering-using-mongodb-for-your-next-app/>).
-  - This was fixed by changing the `PUT` response in `generateEndPoint` from a `find` and then `save` to a (`findOneAndUpdate`)[http://mongoosejs.com/docs/api.html#model_Model.findOneAndUpdate} call.
+  - This was fixed by changing the `PUT` response in `generateEndPoint` from a `find` and then `save` to a (`findOneAndUpdate`)[http://mongoosejs.com/docs/api.html#model_Model.findOneAndUpdate] call.
 - https://github.com/jfromaniello/url-join
+- http://www.appelsiini.net/projects/jeditable
+- http://docs.mongodb.org/manual/core/index-compound/#prefixes
+- http://mongoosejs.com/docs/guide.html#indexes
