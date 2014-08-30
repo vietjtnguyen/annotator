@@ -256,16 +256,17 @@ var AppRouter = Backbone.Router.extend({
     "parallel-lines/set/:setName/:index/": "parallelLinesSet"
   },
 
+  // This handles loading an image directly by image name. Corresponds to URL
+  // `parallel-lines/:imageName`. The general idea is as follows:
+  //
+  // 1. Have image name.
+  // 2. Get image using image name.
+  // 3. Update everything based on image information.
   parallelLinesDirect: function(imageName) {
     var self = this;
 
-    appState.pointSets.model = Line;
-    appState.setListingView.setPointSetType("Line");
-  },
-
-  parallelLinesSet: function(setName, index) {
-    var self = this;
-
+    // First we'll load any user state saved in local storage. If it isn't
+    // there then the user state model just keeps its defaults.
     appState.userState.fetch({
       appState: appState,
       success: function() {
@@ -274,49 +275,47 @@ var AppRouter = Backbone.Router.extend({
       }
     });
 
-    // Make sure the index is an integer.
-    appState.currentImageSetIndex = parseInt(index);
-    if (!appState.currentImageSetIndex) {
-      appState.pageAlert("danger", "Image index is invalid.");
-      appState.stopListening();
-      return;
-    }
-    appState.imageSetControlView.render();
+    appState.currentImageSet.clear(); // TODO: Should this be silent?
+    appState.currentImageSetIndex = 0;
+    // TODO: Hide image set control view.
 
+    // This is specified here because we're suppose to support different point
+    // set models later (for polylines, polygons, bounding boxes, etc.). For
+    // now since we're dealing explicitly with the parallel lines annotation
+    // we'll specify this as a line.
     appState.pointSets.model = Line;
     appState.setListingView.setPointSetType("Line");
 
-    appState.currentImageSet.set("name", setName);
-    appState.currentImageSet.urlRoot = urljoin(baseApiUrl, "/api/image-set/name");
-    appState.currentImageSet.fetch({
+    // Now update our current image model with the image name.
+    appState.currentImage.idAttribute = "name";
+    appState.currentImage.set("name", imageName);
+    appState.currentImage.urlRoot = urljoin(baseApiUrl, "/api/image/name/");
+
+    // Now that our current image model has the proper name and API URL we
+    // can just fetch the image information including dimensions and
+    // resource URL.
+    appState.currentImage.fetch({
       success: function() {
 
-        var imageIds = appState.currentImageSet.get("imageIds");
+        // The image dimensions have likely changed so we'll reset the view
+        // to center on the image.
+        appState.utilityBoxView.resetView();
 
-        if (appState.currentImageSetIndex < 1 || appState.currentImageSetIndex > imageIds.length) {
-          appState.pageAlert("danger", "Image index is out of range.");
-          appState.stopListening();
-          return;
-        }
+        // Now one would expect to update the image `href` in the working
+        // area here but is actually done in response to a `change:url`
+        // event triggered when the current image fetches and updates.
 
-        var imageId = imageIds[appState.currentImageSetIndex - 1];
-        appState.currentImage.idAttribute = "_id";
-        appState.currentImage.set("_id", imageId);
-        appState.currentImage.urlRoot = urljoin(baseApiUrl, "/api/image/");
-
-        appState.currentImage.fetch({
-          success: function() {
-            appState.utilityBoxView.resetView();
-          },
-          error: function() {
-            appState.pageAlert("danger", "Error while fetching image. Image \"" + appState.currentImage.get("_id") + "\" likely does not exist.");
-            appState.stopListening();
-          }
-        });
-
+        // We couldn't update the point sets and groups concurrently because
+        // before we only had the image name but we need the image ID for the
+        // API. Now that we have the image ID here, we can update the API end
+        // points for the point set and group collections.
+        // 
+        // TODO: Should there be an image name based API end point?
         appState.pointSets.url = urljoin(baseApiUrl, "/api/parallel-lines/", appState.currentImage.get("_id"), "/point-set/");
         appState.groups.url = urljoin(baseApiUrl, "/api/parallel-lines/", appState.currentImage.get("_id"), "/group/");
 
+        // Now we just fetch the point sets, allowing the collection to remove
+        // any existing point sets.
         appState.pointSets.fetch({
           appState: appState,
           remove: true,
@@ -326,6 +325,139 @@ var AppRouter = Backbone.Router.extend({
           }
         });
 
+        // Same goes for the groups.
+        appState.groups.fetch({
+          appState: appState,
+          remove: true,
+          success: function() {
+          },
+          error: function() {
+          }
+        });
+      },
+      error: function() {
+        appState.pageAlert("danger", "Error while fetching image. Image \"" + appState.currentImage.get("_id") + "\" likely does not exist.");
+        // TODO: Add application disable/enable.
+        appState.stopListening();
+      }
+    });
+  },
+
+  // This handles loading an image by indexing into an image set. Corresponds
+  // to URL `parallel-lines/set/:setName/:index`. The general idea is as
+  // follows:
+  //
+  // 1. Have image set name and index.
+  // 2. Get image set using image set name.
+  // 3. Get image ID from image set and index.
+  // 4. Get image using image ID.
+  // 5. Update everything based on image information.
+  parallelLinesSet: function(setName, index) {
+    var self = this;
+
+    // First we'll load any user state saved in local storage. If it isn't
+    // there then the user state model just keeps its defaults.
+    appState.userState.fetch({
+      appState: appState,
+      success: function() {
+      },
+      error: function() {
+      }
+    });
+
+    // Next we'll make sure the index is an integer.
+    appState.currentImageSetIndex = parseInt(index);
+    if (!appState.currentImageSetIndex) {
+
+      // TODO: The following should be part of an application wide
+      // enable/disable functionality to kill interface functionality when
+      // there's an error that we can't recover from.
+      appState.pageAlert("danger", "Image index is invalid.");
+      appState.stopListening();
+
+      return;
+    }
+
+    // Now that we have a valid index let's rerender the image set control view
+    // so that the number in the entry field updates.
+    appState.imageSetControlView.render();
+
+    // This is specified here because we're suppose to support different point
+    // set models later (for polylines, polygons, bounding boxes, etc.). For
+    // now since we're dealing explicitly with the parallel lines annotation
+    // we'll specify this as a line.
+    appState.pointSets.model = Line;
+    appState.setListingView.setPointSetType("Line");
+
+    // Next we grab the entire image set. We have an *image set name* but we
+    // need to end up with an *image model*. So the first step is to get the
+    // image set from the image set name because the image set contains a list
+    // of image IDs that we can use to grab the image model itself.
+    appState.currentImageSet.set("name", setName);
+    appState.currentImageSet.urlRoot = urljoin(baseApiUrl, "/api/image-set/name");
+    appState.currentImageSet.fetch({
+      success: function() {
+
+        // If we've made it here then we successfully fetched and updated the
+        // image set. We'll chuck the array of image IDs into a variable for
+        // convenience.
+        var imageIds = appState.currentImageSet.get("imageIds");
+
+        // Next we verify that the index we have is not out of bounds for this
+        // image set. The index starts at one.
+        if (appState.currentImageSetIndex < 1 || appState.currentImageSetIndex > imageIds.length) {
+          appState.pageAlert("danger", "Image index is out of range.");
+          // TODO: Add application disable/enable.
+          appState.stopListening();
+          return;
+        }
+
+        // Now we'll grab the image ID from the image set and use it to update
+        // our current image model.
+        var imageId = imageIds[appState.currentImageSetIndex - 1];
+        appState.currentImage.idAttribute = "_id";
+        appState.currentImage.set("_id", imageId);
+        appState.currentImage.urlRoot = urljoin(baseApiUrl, "/api/image/");
+
+        // Now that our current image model has the proper ID and API URL we
+        // can just fetch the image information including dimensions and
+        // resource URL.
+        appState.currentImage.fetch({
+          success: function() {
+
+            // The image dimensions have likely changed so we'll reset the view
+            // to center on the image.
+            appState.utilityBoxView.resetView();
+
+            // Now one would expect to update the image `href` in the working
+            // area here but is actually done in response to a `change:url`
+            // event triggered when the current image fetches and updates.
+          },
+          error: function() {
+            appState.pageAlert("danger", "Error while fetching image. Image \"" + appState.currentImage.get("_id") + "\" likely does not exist.");
+            // TODO: Add application disable/enable.
+            appState.stopListening();
+          }
+        });
+
+        // While the image is fetching we can also grab the point sets and
+        // groups for this image and annotation type. First we'll need to
+        // update the API end points for the collections.
+        appState.pointSets.url = urljoin(baseApiUrl, "/api/parallel-lines/", appState.currentImage.get("_id"), "/point-set/");
+        appState.groups.url = urljoin(baseApiUrl, "/api/parallel-lines/", appState.currentImage.get("_id"), "/group/");
+
+        // Now we just fetch the point sets, allowing the collection to remove
+        // any existing point sets.
+        appState.pointSets.fetch({
+          appState: appState,
+          remove: true,
+          success: function() {
+          },
+          error: function() {
+          }
+        });
+
+        // Same goes for the groups.
         appState.groups.fetch({
           appState: appState,
           remove: true,
@@ -337,6 +469,7 @@ var AppRouter = Backbone.Router.extend({
       },
       error: function() {
         appState.pageAlert("danger", "Error while fetching image set. Image set \"" + appState.currentImageSet.get("name") + "\" likely does not exist.");
+        // TODO: Add application disable/enable.
         appState.stopListening();
       }
     });
