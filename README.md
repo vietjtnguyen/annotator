@@ -48,27 +48,46 @@ local  0.078GB
 2. Place dataset (folder with images) in the `./dataset` folder. This isn't necessary but is recommended. Let's assume your folder is called `myDataset` (i.e. it is at `./dataset/myDataset`).
 3. Run `./install_dataset.bash public/image ./dataset/myDataset`. This script will `find` every `bmp`, `gif`, `jpg`, `jpeg`, `png`, `tif`, and `tiff` in your dataset folder. It then uses `convert` to get the width and height and `shasum` to get the SHA1 hash of the image file. This information including image name, file, and URL are saved as entries in the local Mongo database in the `annotator` database in the `images` collection. This save is done using `mongoimport`. Finally it creates a symlink in `./public/image` to the original image file. Images are served statically from `./public/image` and are named based on their SHA1 hash.
 
+Note that image names *must be unique*, but SHA1 hashes do not have to be unique (so the same image file can have different names).
+
 Keep in mind that there is a 16 MB limit to `mongoimport` when using `--jsonArray` which the `install_dataset.bash` script uses. For reference, the JSON file for all PASCAL 2010 images (about 20k images) is 4.6 MB.
 
 An example dataset installation script is provided in `./dataset/install_york_dataset.bash`.
 
-About
-=====
+## Create Image Set
 
-Computer vision and machine learning research is dependent (depending on methodology) on labeled datasets as a ground truth for both training and testing.
+Image sets are ordered lists of image IDs (as in MongoDB IDs). The `create_image_set.js` script can be used to create image sets from lists of Mongoose queries. This allows for the creation of lists from lists of image names, image SHA1 hashes, filenames, etc.
 
-Early datasets were image level annotations where an entire image was labeled with a class (e.g. [MNIST Digits](http://yann.lecun.com/exdb/mnist/), [Caltech 101](http://www.vision.caltech.edu/Image_Datasets/Caltech101/)). Scene classification datasets can also be crudely considered image level annotations. Object detection algorithms require region level annotations, usually in the form of a bounding box around objects in an image. Object segmentation takes it further by labeling object silhouettes with arbitrary shaped regions. These arbitrary shaped regions either take the form of a set of polygons (with no convexity constraint) or pixel level labels, though it can be argued that these formats are interchangeable.
+A Mongoose query is just a Javascript hash object of desired field-value matches. For example, query `{"name": "P1020171"}` returns an image that has field `name` equal to `P1020171`. Mongoose supports more complex queries, but in creating an image set we expect each query to return only one image. If the query returns empty or error the script retries two more times (in case there were locking issues) before skipping the image and leaving it out of the final image set.
 
-Labeling these datasets is a labor intensive task with labeling tools often rewritten from scratch. Many of the tools I have seen written for annotation tasks are one off projects written using MATLAB's GUI. The goal of this project is to develop a fairly flexible annotation system that is web based and allows for different annotation types. Having a web application as the annotation tool allows us to leverage a huge ecosystem of web technologies. It also lets labelers access the tool in a distributed manner without the need for MATLAB.
+The script takes in a JSON file which contains an array of Mongoose queries to find one image in the database. The order of queries is preserved in the final image set.
 
-Concepts
---------
+The second argument is the name to assign the image set in the database. This name is used to reference the image set and thus must be URL friendly (though this is not enforced). For example, an image set named `YorkUrbanDB` can be accessed at URL `/parallel-lines/set/YorkUrbanDB/1`.
 
-Usage
-=====
+```
+./createImageSet.js jsonArrayFile.json imageSetName
+```
 
-Getting Data
-------------
+The following is an example image set JSON file:
+
+```  
+[
+{"sha": "98bb60c011a38c76f71f409a58fa5bf5cf70e115", "name": "P1020171", "filename": "datasets/YorkUrbanDB/P1020171/P1020171.jpg", "url": "/image/98/bb60c011a38c76f71f409a58fa5bf5cf70e115.jpg", "width": 640, "height": 480, "comment": ""}, 
+{"sha": "4989e260e387455d66632c1327a46d56930f1e74", "name": "P1020177", "filename": "datasets/YorkUrbanDB/P1020177/P1020177.jpg", "url": "/image/49/89e260e387455d66632c1327a46d56930f1e74.jpg", "width": 640, "height": 480, "comment": ""}, 
+{"sha": "53fe4189ac3265027a914b5a2c5cd03b4f90c4d0"}, 
+{"sha": "eb0dafbcdba94b011d7ce6af3b71827748abe2d9"}, 
+{"name": "P1020819"}, 
+{"name": "P1020822"},
+...
+{"name": "P1080119"}
+]
+```
+
+The JSON file produced by `install_dataset.bash` is valid input to `create_image_set.js`.
+
+Note that the input file must be valid JSON. Thus the trailing comma in the array cannot be present. The `underscore-cli` utility can be handle for making sure the JSON outputs correctly (see `./datasets/pascal_list_to_image_set.bash`).
+
+## Getting Data
 
 You can extract the data saved by visiting a special endpoint: `/parallel-lines/report.json`. This will export all of the saved annotation data as a JSON file. The JSON object is keyed by image name. Each image is an array of objects with a `points`, `group`, and `description` attribute. See the example below.
 
@@ -92,8 +111,35 @@ You can extract the data saved by visiting a special endpoint: `/parallel-lines/
 
 The group is just a randomly generated hexadecimal GUID to ensure uniqueness when groups are created. The group name has no semantic meaning.
 
-Developer Stuff
+About
+=====
+
+Computer vision and machine learning research is dependent (depending on methodology) on labeled datasets as a ground truth for both training and testing.
+
+Early datasets were image level annotations where an entire image was labeled with a class (e.g. [MNIST Digits](http://yann.lecun.com/exdb/mnist/), [Caltech 101](http://www.vision.caltech.edu/Image_Datasets/Caltech101/)). Scene classification datasets can also be crudely considered image level annotations. Object detection algorithms require region level annotations, usually in the form of a bounding box around objects in an image. Object segmentation takes it further by labeling object silhouettes with arbitrary shaped regions. These arbitrary shaped regions either take the form of a set of polygons (with no convexity constraint) or pixel level labels, though it can be argued that these formats are interchangeable.
+
+Labeling these datasets is a labor intensive task with labeling tools often rewritten from scratch. Many of the tools I have seen written for annotation tasks are one off projects written using MATLAB's GUI. The goal of this project is to develop a fairly flexible annotation system that is web based and allows for different annotation types. Having a web application as the annotation tool allows us to leverage a huge ecosystem of web technologies. It also lets labelers access the tool in a distributed manner without the need for MATLAB.
+
+Concepts
+--------
+
+We abstract single points, lines, polylines, polygons, and bounding boxes into just point sets. Point sets are ordered arrays of two dimensional points with `x` and `y` attributes. A point set is an abstract notion. Derived models such as lines enforce constraints such as having a maximum of two points. Bounding boxes can be represented with two points as well.
+
+Developer Notes
 ===============
+
+All of the below is not rigorous or final.
+
+Commands
+--------
+
+- Add point set
+- Remove point set
+- Add group
+- Remove group
+- Add point to point set
+- Remove point from point set
+- Change point set group membership
 
 API
 ---
@@ -118,6 +164,14 @@ Generic end points:
 - `/api/{annotation_name}/{image_id}/group/{group_id}`
 - `/api/{annotation_name}/{image_id}/point-set`
 - `/api/{annotation_name}/{image_id}/point-set/{point_id}`
+
+Should these endpoints be added?
+
+- `/api/{annotation_name}/name/{image_name}`
+- `/api/{annotation_name}/name/{image_name}/group`
+- `/api/{annotation_name}/name/{image_name}/group/{group_id}`
+- `/api/{annotation_name}/name/{image_name}/point-set`
+- `/api/{annotation_name}/name/{image_name}/point-set/{point_id}`
 
 Specific end points (just examples):
 
