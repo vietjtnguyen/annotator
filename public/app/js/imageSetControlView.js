@@ -44,14 +44,24 @@ var ImageSetControlView = Backbone.View.extend({
 
   offsetImage: function(offset) {
     var self = this;
-    self.appState.currentImageSetIndex = (self.appState.currentImageSetIndex - 1 + offset + self.appState.currentImageSet.get("imageIds").length) % self.appState.currentImageSet.get("imageIds").length + 1;
-    appRouter.navigate("parallel-lines/set/" + self.appState.currentImageSet.get("name") + "/" + self.appState.currentImageSetIndex + "/", {trigger: true});
+
+    var index = self.appState.currentImageSetIndex;
+    var setLength = self.appState.currentImageSet.get("imageIds").length;
+    index = (index - 1 + offset + setLength) % setLength + 1;
+    self.appState.currentImageSetIndex = index;
+
+    var setIndexUrl = urljoin("parallel-lines/set/", self.appState.currentImageSet.get("name"), self.appState.currentImageSetIndex);
+    appRouter.navigate(setIndexUrl, {trigger: true});
   },
 
   jumpImage: function(index) {
     var self = this;
-    self.appState.currentImageSetIndex = (index - 1) % self.appState.currentImageSet.get("imageIds").length + 1;
-    appRouter.navigate("parallel-lines/set/" + self.appState.currentImageSet.get("name") + "/" + self.appState.currentImageSetIndex + "/", {trigger: true});
+
+    var setLength = self.appState.currentImageSet.get("imageIds").length;
+    self.appState.currentImageSetIndex = (index - 1) % setLength + 1;
+
+    var setIndexUrl = urljoin("parallel-lines/set/", self.appState.currentImageSet.get("name"), self.appState.currentImageSetIndex);
+    appRouter.navigate(setIndexUrl, {trigger: true});
   }
 
 });
